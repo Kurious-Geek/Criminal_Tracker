@@ -1,0 +1,42 @@
+			#########################
+			### CRIMINAL TRACKER ### 
+			#########################
+Author:
+Author's Email:
+Description:
+
+Criminal Tracker is a prototype of a data entry software 
+this app works on POSTGRESQL database,  for now the databse configurations are done manually
+
+***before running the app for the first time do the database configuration***
+
+~Database configuration:
+	* download and install postgres software
+	* create a database on the software and name it  "criminal_record" 
+	  Alternative: (if you are a developer and you already have a database you are working with, locate the 'model.py' file in the directory of installation of this app, locate the settings class and edit it according to your database configuration)
+	* in the installation directory locate the directory "sql/create_db.sql" and run the script on your databse query tool
+	* your application is good to go 
+
+~Menu bar:
+Menu bar contains regular menu bar options
+	* File: 
+		New Record: this resets the content of the home tab to enter a new record
+		Save: this saves the records to the database
+		Save in CSV: this saves the records to a csv file
+		Exit: Exit the app 
+	* Options:
+		Autofill Date: when ticked it auto fills the "date of registration" column with the current date
+		Font size: for changing the size of the font for the app for better visualization 
+		themes: for changing themes of the app it only contains windows native themes
+	* View:
+		Criminal list: this creates a tab that shows all records in the database on some selected columns
+		New Record: this resets the home tab for a new record entry
+	* Search: 
+		Search Options: this searchs for keywords by selected categories these categories are columns on the "view table" in the database 
+	
+~Error Handling:
+	* App window cannot be resized
+	* Cannot Save Record: this is due to the fact that one or more fields are empty or are field with wrong syntax
+	* problem saving record: this is due to database error or as stated in the error details
+	* 
+	 

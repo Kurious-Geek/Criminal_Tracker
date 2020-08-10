@@ -5,6 +5,7 @@ import json
 import psycopg2 as pg
 from psycopg2.extras import DictCursor
 from tkinter import messagebox
+from psycopg2 import sql as SQL
 
 class CSVModel:
 
@@ -16,7 +17,7 @@ class CSVModel:
         'Age': {'req': True, 'type':FT.integer},
         'Male': {'req': True, 'type':FT.boolean},
         'Female': {'req': True, 'type':FT.boolean},
-        'Height': {'req': True, 'type':FT.integer, 'width':10},
+        'Height': {'req': True, 'type':FT.string, 'width':10},
         'Weight': {'req': True, 'type':FT.integer, 'width':10},
         'Eye Color': {'req': True, 'type':FT.string, 'width':12},
         'Hair Color': {'req': True, 'type':FT.string, 'width':12},
@@ -138,7 +139,7 @@ class SQLModel:
         'Age': {'req': True, 'type':FT.integer},
         'Male': {'req': True, 'type':FT.boolean},
         'Female': {'req': True, 'type':FT.boolean},
-        'Height': {'req': True, 'type':FT.integer, 'width':10},
+        'Height': {'req': True, 'type':FT.string, 'width':10},
         'Weight': {'req': True, 'type':FT.integer, 'width':10},
         'Eye Color': {'req': True, 'type':FT.string, 'width':12},
         'Hair Color': {'req': True, 'type':FT.string, 'width':12},
@@ -185,10 +186,10 @@ class SQLModel:
             if cursor.description is not None:
                 return cursor.fetchall()
 
-    def search_query(self, search_inp):
-        query = ('SELECT * FROM data_record_view WHERE "First Name" = %(search_inp)s')
+    def search_query(self, category, search_inp):
+        query = ('SELECT * FROM data_record_view WHERE "{}" = %(search_inp)s').format(category)
         result = self.query(query, {'search_inp':search_inp})
-        return result if result else "Record not found"
+        return result if result else {}
         
 
     def get_all_records(self, all_dates=False):
@@ -224,7 +225,7 @@ class SQLModel:
         
     pi_update_query = (
         'UPDATE personal_information SET cases_number = %(Case Number)s, '
-        'first_name = %(First Name)s, last_name = %(First Name)s, aliases = %(Aliases)s, '
+        'first_name = %(First Name)s, last_name = %(Last Name)s, aliases = %(Aliases)s, '
         'birth_date = %(Birth Date)s, age = %(Age)s, male = %(Male)s, '
         'female = %(Female)s, height = %(Height)s, weight = %(Weight)s, '
         'eye_color = %(Eye Color)s, hair_color = %(Hair Color)s, '

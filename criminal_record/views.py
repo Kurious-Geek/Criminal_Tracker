@@ -14,8 +14,8 @@ class MainMenu(tk.Menu):
         file_menu = tk.Menu(self, tearoff=False)
         file_menu.add_command(label='New Record', command=callbacks['new_record'])
         file_menu.add_separator()
+        file_menu.add_command(label="Save         Ctrl+S", command=callbacks['file->save'])
         file_menu.add_command(label='Save in CSV', command=callbacks['file->savein'])
-        file_menu.add_command(label='Save', command=callbacks['file->save'])
         file_menu.add_separator()
         file_menu.add_command(label='Exit', command=callbacks['file->quit'])
         self.add_cascade(label='File', menu=file_menu)
@@ -52,19 +52,24 @@ class MainMenu(tk.Menu):
         self.add_cascade(label='Search', menu=search_menu)
         
         help_menu = tk.Menu(self, tearoff=False)
-        help_menu.add_command(label='About...', command=self.show_about)
+        help_menu.add_command(label='About Criminal Tracker', command=self.show_about)
+        help_menu.add_command(label='View Help', command=self.view_help)
         self.add_cascade(label='Help', menu=help_menu)
 
     def show_about(self):
-        about_message = 'CRIMINAL TRACKER'
+        about_message = 'CRIMINAL TRACKER \nVersion 2.0'
         about_detail = ('by Halima Abati \nFor assistance please read the docs \nor contact the developer. '
                         '\n\n\n\t\tpowered by Kurious Geek')
-        messagebox.showinfo(title='About', message=about_message, detail=about_detail)
+        messagebox.showinfo(title='About Criminal Tracker', message=about_message, detail=about_detail)
+
+    def view_help(self):
+        """ """
+        pass
         
     def on_theme_change(self, *args):
         message = 'Theme change requires restart'
-        detail = ('Changing theme requires application restart'
-                  'Your work progrss might be lost'
+        detail = ('Changing theme requires application restart\n'
+                  'Your work progrss might be lost\n'
                   'Do you want to continue?')
         messagebox.showwarning(title='Warning', message=message, detail=detail)
         
@@ -75,42 +80,24 @@ class DataRecordForm(tk.Frame):
         self.settings = settings
         self.callbacks = callbacks
         self.current_record = None
+        self.config(background='#008ae6')
 
         style = ttk.Style()
         style.configure('BackgroundCol.TLabel', background='#008ae6', foreground='white')
         style.configure('BackgroundCol.TCheckbutton', background='#008ae6', foreground='white')
         
-        #-- canvas --#
-        self.canvas = tk.Canvas(self, width=985, height=600, highlightthickness=0, bg='#008ae6')
-        yscrollbar = tk.Scrollbar(self, orient='vertical', command=self.canvas.yview)
-        xscrollbar = tk.Scrollbar(self, orient='horizontal', command=self.canvas.xview)
-
-        self.scrollable_frame = tk.Frame(self.canvas)
-        self.scrollable_frame.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL)))
-        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor='nw')
-        self.canvas.configure(xscrollcommand=xscrollbar.set, yscrollcommand=yscrollbar.set)
-
-        self.scrollable_frame.bind('<Enter>', self._bound_to_mousewheel)
-        self.scrollable_frame.bind('<Leave>', self._unbound_to_mousewheel)
-
-        self.scrollable_frame.config(bg='#008ae6')
-
-        self.canvas.grid(row=0, column=0, sticky='NSEW')
-        yscrollbar.grid(row=0, column=1, sticky='NS')
-        xscrollbar.grid(row=1, column=0, sticky='EW') 
-
         self.inputs = {}
 
         self.logo = tk.PhotoImage(file=ctracker_64)
-        self.logo_label=tk.Label(self.scrollable_frame, image=self.logo, highlightthickness=0, borderwidth=0)
-        self.logo_label.grid(row=0, sticky='E')
+        self.logo_label=tk.Label(self, image=self.logo, highlightthickness=0, borderwidth=0, background='#008ae6')
+        self.logo_label.grid(row=0, columnspan=2, pady=10)
 
-        self.record_label = ttk.Label(self.scrollable_frame, style='BackgroundCol.TLabel')
-        self.record_label.grid(row=1, sticky='E')
+        self.record_label = ttk.Label(self, style='BackgroundCol.TLabel')
+        self.record_label.grid(row=1, columnspan=2)
         
         #-- personal information --#
         
-        personal_info = tk.LabelFrame(self.scrollable_frame, text = 'PERSONAL INFORMATION', bg='#008ae6', fg='white')
+        personal_info = tk.LabelFrame(self, text = 'PERSONAL INFORMATION', bg='#008ae6', fg='white')
         personal_info.grid(row=2, column=0, padx=5)
 
         self.inputs['First Name'] = w.LabelInput(personal_info, "First Name:", field_spec=fields['First Name'], label_args={'style': 'BackgroundCol.TLabel'})
@@ -196,7 +183,7 @@ class DataRecordForm(tk.Frame):
 
         #-- official --#
 
-        official = tk.LabelFrame(self.scrollable_frame, text='OFFICIAL', bg='#008ae6', fg='white')
+        official = tk.LabelFrame(self, text='OFFICIAL', bg='#008ae6', fg='white')
         official.grid(column=1, row=2, sticky=(tk.W+tk.N), padx=5)
 
         self.inputs['Date of Registration'] = w.LabelInput(official, 'Date of Registration:', field_spec=fields['Date of Registration'], label_args={'style':'BackgroundCol.TLabel'})
@@ -249,10 +236,10 @@ class DataRecordForm(tk.Frame):
         self.inputs['Known Gang'].configure(background='#008ae6')
         self.inputs['Known Gang'].grid(column=1, row=9)
         
-        self.savebutton = ttk.Button(self.scrollable_frame, text="  Save  ", command=self.callbacks['save'])
+        self.savebutton = ttk.Button(self, text="  Save  ", command=self.callbacks['save'])
         self.savebutton.grid(column=0, row=11, padx=10, pady=10, sticky='E')
 
-        self.clearbutton = ttk.Button(self.scrollable_frame, text="  Clear  ", command=self.callbacks['clear'])
+        self.clearbutton = ttk.Button(self, text="  Clear  ", command=self.callbacks['clear'])
         self.clearbutton.grid(column=1, row=11, sticky='W', pady=10, padx=10)
 
         self.reset()
@@ -312,7 +299,9 @@ class RecordList(tk.Frame):
         'Date of Registration': {'label':'Date of Registration', 'width':115},
         'First Name':{'label':'First Name', 'width':150, 'stretch':True},
         'Last Name':{'label':'Last Name', 'width':150, 'stretch':True},
-        'Age': {'label':'Age(yrs)', 'width':80},        
+        'Age': {'label':'Age(yrs)', 'width':80}, 
+        'Height': {'label':'Height(ft)', 'width':80},
+        'Weight': {'label':'Weight(kg)', 'width':80},       
         'Date of Arrest': {'label':'Date of Arrest', 'width':150},
         'Arresting Officer': {'label':'Arresting Officer', 'width':150, 'stretch':True},
         'Class of Crime': {'label':'Class of Crime', 'width':100, 'stretch':True},
@@ -334,20 +323,18 @@ class RecordList(tk.Frame):
 
         #-- canvas --#
 
-        self.canvas = tk.Canvas(self, width=985, height=600, highlightthickness=0)
-        self.yscrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.canvas.yview)
+        self.canvas = tk.Canvas(self, width=1000, height=630, highlightthickness=0)
         self.xscrollbar = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self.canvas.xview)
 
         self.tree_frame = tk.Frame(self.canvas)
         self.tree_frame.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL)))
         self.canvas.create_window((0, 0), window=self.tree_frame, anchor='nw')
-        self.canvas.configure(yscrollcommand=self.yscrollbar.set, xscrollcommand=self.xscrollbar.set)
+        self.canvas.configure(xscrollcommand=self.xscrollbar.set)
 
         self.tree_frame.bind('<Enter>', self._bound_to_mousewheel)
         self.tree_frame.bind('<Leave>', self._unbound_to_mousewheel)
 
         self.canvas.grid(row=0, column=0, sticky='NSEW')
-        self.yscrollbar.grid(row=0, column=1, sticky='NSW')
         self.xscrollbar.grid(row=1, column=0, sticky='EWS')
 
         #-- treeview --#
@@ -367,6 +354,8 @@ class RecordList(tk.Frame):
         self.treeview.heading('First Name', text='First Name')
         self.treeview.heading('Last Name', text='Last Name')
         self.treeview.heading('Age', text='Age')
+        self.treeview.heading('Height', text='Height(ft)')
+        self.treeview.heading('Weight', text='Weight(kg)')
         self.treeview.heading('Date of Arrest', text='Date of Arrest')
         self.treeview.heading('Arresting Officer', text='Arresting Officer')
         self.treeview.heading('Class of Crime', text='Class of Crime')
@@ -375,12 +364,14 @@ class RecordList(tk.Frame):
         self.treeview.column('#0', anchor=tk.CENTER, width=50, stretch=False)
         self.treeview.column('Case Number', anchor=tk.CENTER, width=100, stretch=False)
         self.treeview.column('Date of Registration', anchor=tk.CENTER, width=150, stretch=False)
-        self.treeview.column('First Name', anchor=tk.CENTER, width=150, stretch=True)
-        self.treeview.column('Last Name', anchor=tk.CENTER, width=150, stretch=True)
+        self.treeview.column('First Name', anchor=tk.W, width=150, stretch=True)
+        self.treeview.column('Last Name', anchor=tk.W, width=150, stretch=True)
         self.treeview.column('Age', anchor=tk.CENTER, width=80, stretch=False)
+        self.treeview.column('Height', anchor=tk.CENTER, width=80, stretch=False)
+        self.treeview.column('Weight', anchor=tk.CENTER, width=80, stretch=False)
         self.treeview.column('Date of Arrest', anchor=tk.CENTER, width=100, stretch=False)
         self.treeview.column('Arresting Officer', anchor=tk.CENTER, width=150, stretch=True)
-        self.treeview.column('Class of Crime', anchor=tk.CENTER, width=100, stretch=True)
+        self.treeview.column('Class of Crime', anchor=tk.W, width=125, stretch=True)
         self.treeview.column('Crime', anchor=tk.CENTER, width=150, stretch=True)
         
         self.treeview.bind('<<TreeviewOpen>>', self.on_open_record)
@@ -388,15 +379,18 @@ class RecordList(tk.Frame):
         self.treeview.tag_configure('insert', background='lightblue')
         self.treeview.tag_configure('update', background='grey') 
 
+        self.yscrollbar = ttk.Scrollbar(self.tree_frame, orient=tk.VERTICAL, command=self.treeview.yview)
+        self.treeview.configure(yscrollcommand=self.yscrollbar.set)
+        self.yscrollbar.grid(row=0, column=1, sticky='NSW', rowspan=2)
+
     def _bound_to_mousewheel(self, event):
         self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
 
-    def _unbound_to_mousewheel(self,event):
+    def _unbound_to_mousewheel(self, event):
         self.canvas.unbind_all('<MouseWheel>')
 
     def _on_mousewheel(self, event):
-        self.canvas.yview_scroll(int(-1*(event.delta/120)), 'units')
-        
+        self.treeview.yview_scroll(int(-1*(event.delta/120)), 'units')
 
     def populate(self, rows):
 
@@ -444,7 +438,7 @@ class LoginDialog(Dialog):
         self.configure(bg='#008ae6')
         
         lf = tk.Frame(self, bg='#008ae6')
-        tk.Label(lf, text='Login to Criminal Tracker', font=('Droid sans', 20), bg='#008ae6', fg='white').grid(padx=10, pady=10, columnspan=2)
+        tk.Label(lf, text='Sign in to Criminal Tracker', font=('Droid sans', 18), bg='#008ae6', fg='white').grid(padx=10, pady=10, columnspan=2)
         
         if self.error.get():
             tk.Label(lf, textvariable=self.error, bg='darkred', fg='white').grid(pady=7, row=1, columnspan=2) 
@@ -459,6 +453,43 @@ class LoginDialog(Dialog):
 
         lf.pack()
         return self.username_inp
+
+    def buttonbox(self):
+
+        box = tk.Frame(self, bg='#008ae6')
+
+        w = tk.Button(box, text="Cancel", width=10, command=self.cancel)
+        w.pack(side=tk.LEFT, padx=5, pady=5)
+
+        w = tk.Button(box, text="Login", width=10, command=self.ok, default=tk.ACTIVE)
+        w.pack(side=tk.LEFT, padx=5, pady=5)
+        
+        self.bind("<Return>", self.ok)
+        self.bind("<Escape>", self.cancel)
+
+        box.pack()
+
+    def ok(self, event=None):
+
+        if not self.validate():
+            self.initial_focus.focus_set()
+            return
+
+        self.withdraw()
+        self.update_idletasks()
+
+        self.apply()
+
+        self.cancel()
+
+    def cancel(self, event=None):
+
+        self.parent.focus_set()
+        self.destroy()
+
+    def validate(self):
+
+        return 1
    
     def apply(self):
         self.result = (self.user.get(), self.pw.get())
@@ -467,11 +498,11 @@ class LoginDialog(Dialog):
 class SearchDialog(Dialog):
 
     def __init__(self, parent, title, error=''):
-        self.selected = tk.StringVar()
+        self.category = tk.StringVar()
         self.search_inp = tk.StringVar()
         self.error = tk.StringVar(value=error)
         super().__init__(parent, title)
-
+        
     def body(self, parent):
         self.taskbar_icon = tk.PhotoImage(file=ctracker_32)
         self.tk.call('wm', 'iconphoto', self._w, self.taskbar_icon)
@@ -484,30 +515,159 @@ class SearchDialog(Dialog):
         self.search_box = tk.Entry(frame, textvariable=self.search_inp, width='22')
         self.search_box.grid(column=1, row=0, pady=10, padx=10)
 
-        self.category = tk.Label(frame, text='Category:')
-        self.category.grid(column=0, row=1, pady=10, padx=10)
+        self.Category = tk.Label(frame, text='Category:')
+        self.Category.grid(column=0, row=1, pady=10, padx=10)
 
-        self.option_search = ttk.Combobox(frame, textvariable=self.selected,
+        self.option_search = ttk.Combobox(frame, textvariable=self.category,
                                      value=["   --select--", "Case Number", "Date of Registration", "First Name", "Last Name", "Male", "Female", "Age", "Nationality"])
         self.option_search.current(0)
         self.option_search.grid(column=1, row=1, pady=10, padx=10)
 
-        if self.error.get():
-            tk.Label(frame, textvariable=error, fg="white", bg="darkred").grid(row=3, pady=10, padx=10, columnspan=3)
-
         frame.pack()
+
+        return self.search_box 
         
     def buttonbox(self):
-        self.search_button = tk.Button(self, text="  Search  ", command=self.search_command)
+        self.search_button = tk.Button(self, text="  Search  ", command=self.ok)
         self.search_button.pack(side= tk.RIGHT, padx=10, pady=10)
+        self.bind("<Return>", self.ok)
 
-    def search_command(self):
-        self.search = (self.selected.get(), self.search_inp.get())
+    def ok(self, event=None):
+        if not self.validate():
+            self.initial_focus.focus_set()
+            return
+        self.withdraw()
+        self.update_idletasks()
+        self.apply()
+        self.cancel()
+
+    def cancel(self, event=None):
+        self.parent.focus_set()
+        self.destroy()
+
+    def validate(self):
+        return 1
+       
+    def apply(self):
+        self.result = (self.category.get(), self.search_inp.get())
+
         
 
-        
-        
+class SearchResult(tk.Toplevel):
 
+    column_defs = {
+        '#0': {'label':'Row', 'anchor':tk.W},
+        'Case Number': {'label':'Case Number', 'width':100},
+        'Date of Registration': {'label':'Date of Registration', 'width':115},
+        'First Name':{'label':'First Name', 'width':150, 'stretch':True},
+        'Last Name':{'label':'Last Name', 'width':150, 'stretch':True},
+        'Age': {'label':'Age(yrs)', 'width':80}, 
+        'Height': {'label':'Height(ft)', 'width':80},
+        'Weight': {'label':'Weight(kg)', 'width':80},       
+        'Date of Arrest': {'label':'Date of Arrest', 'width':150},
+        'Arresting Officer': {'label':'Arresting Officer', 'width':150, 'stretch':True},
+        'Class of Crime': {'label':'Class of Crime', 'width':100, 'stretch':True},
+        'Crime': {'label':'Crime', 'width':150, 'stretch':True}
+
+        }
+    default_width = 100
+    default_minwidth = 10
+    default_anchor = tk.CENTER
+
+    def __init__(self, parent, title=None):
+        tk.Toplevel.__init__(self, parent)
+        self.transient(parent)
+        
+        self.title(title)
+
+        self.parent = parent
+        self.result = None
+
+        body = tk.Frame(self)
+        self.initial_focus = self.body(body)
+        body.pack(padx=5, pady=5)
+
+        #self.buttonbox()
+
+        self.grab_set()
+
+        if not self.initial_focus:
+            self.initial_focus = self
+
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
+
+        self.geometry("+%d+%d" % (parent.winfo_rootx()+50,
+                                  parent.winfo_rooty()+50))
+
+        self.initial_focus.focus_set()
+
+        self.wait_window(self)
+
+    def body(self, parent):
+
+        self.taskbar_icon = tk.PhotoImage(file=ctracker_32)
+        self.tk.call('wm', 'iconphoto', self._w, self.taskbar_icon)
+
+        frame = tk.Frame(self)
+        frame.pack()
+
+        self.searchview = ttk.Treeview(self, columns=list(self.column_defs.keys())[1:], selectmode='browse')
+
+        for name, definition in self.column_defs.items():
+            label = definition.get('label', '')
+            anchor = definition.get('anchor', self.default_anchor)
+            minwidth = definition.get('minwidth', self.default_minwidth)
+            width = definition.get('width', self.default_width)
+            stretch = definition.get('stretch', False)
+
+            self.searchview.heading(name, text=label, anchor=anchor)
+            self.searchview.column(name, anchor=anchor, minwidth=minwidth, width=width, stretch=stretch)
+        '''
+        for index, x in enumerate(self.results):
+            num=0
+            for y in x:
+                label = tk.Label(frame, text=y)
+                label.grid(column=num, row=index)
+                num +=1
+        '''
+    def searchview_populate(self, rows):
+        for row in self.searchview.get_children():
+            self.searchview.delete(row)
+
+        valuekeys = list(self.column_defs.keys())[1:]
+        for rowdata in rows:
+            rowkey = (str(rowdata['Case Number']), str(rowdata['Date of Registration']))
+            values = [rowdata[key] for key in valuekeys]
+
+            stringkey = '{}|{}'.format(*rowkey)
+            self.searchview.insert('', 'end', iid=stringkey, text=stringkey,
+                                 values=values, tag=tag)
+
+    def ok(self, event=None):
+
+        if not self.validate():
+            self.initial_focus.focus_set()
+            return
+
+        self.withdraw()
+        self.update_idletasks()
+
+        self.apply()
+
+        self.cancel()
+
+    def cancel(self, event=None):
+
+        self.parent.focus_set()
+        self.destroy()
+
+    def validate(self):
+
+        return 1 
+
+    def apply(self):
+
+        pass 
 
 
 
