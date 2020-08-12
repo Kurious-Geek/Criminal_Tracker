@@ -12,12 +12,12 @@ class MainMenu(tk.Menu):
     def __init__(self, parent, settings, callbacks, **kwargs):
         super().__init__(parent, **kwargs)
         file_menu = tk.Menu(self, tearoff=False)
-        file_menu.add_command(label='New Record', command=callbacks['new_record'])
+        file_menu.add_command(label='New Record ', command=callbacks['new_record'])
         file_menu.add_separator()
-        file_menu.add_command(label="Save         Ctrl+S", command=callbacks['file->save'])
-        file_menu.add_command(label='Save in CSV', command=callbacks['file->savein'])
+        file_menu.add_command(label="Save                    Ctrl+S", command=callbacks['file->save'])
+        file_menu.add_command(label='Save in CSV       Ctrl+Shift+S', command=callbacks['file->savein'])
         file_menu.add_separator()
-        file_menu.add_command(label='Exit', command=callbacks['file->quit'])
+        file_menu.add_command(label='Exit                      Ctrl+Q', command=callbacks['file->quit'])
         self.add_cascade(label='File', menu=file_menu)
 
         options_menu = tk.Menu(self, tearoff=False)
@@ -36,9 +36,9 @@ class MainMenu(tk.Menu):
         for theme in style.theme_names():
             themes_menu.add_radiobutton(
                 label=theme, value=theme,
-                variable=settings['theme'].trace('w', self.on_theme_change)
+                variable=settings['theme']
             )
-        options_menu.add_cascade(label='Theme', menu=themes_menu)
+        options_menu.add_cascade(label='Theme       *(requires restart)', menu=themes_menu)
 
         self.add_cascade(label='Options', menu=options_menu)
 
@@ -52,12 +52,12 @@ class MainMenu(tk.Menu):
         self.add_cascade(label='Search', menu=search_menu)
         
         help_menu = tk.Menu(self, tearoff=False)
-        help_menu.add_command(label='About Criminal Tracker', command=self.show_about)
         help_menu.add_command(label='View Help', command=self.view_help)
+        help_menu.add_command(label='About Criminal Tracker', command=self.show_about)     
         self.add_cascade(label='Help', menu=help_menu)
 
     def show_about(self):
-        about_message = 'CRIMINAL TRACKER \nVersion 2.0'
+        about_message = 'CRIMINAL TRACKER \nversion 2.0'
         about_detail = ('by Halima Abati \nFor assistance please read the docs \nor contact the developer. '
                         '\n\n\n\t\tpowered by Kurious Geek')
         messagebox.showinfo(title='About Criminal Tracker', message=about_message, detail=about_detail)
@@ -269,7 +269,7 @@ class DataRecordForm(tk.Frame):
 
         return errors
 
-    def load_record(self, rownum, data=None):
+    def load_record(self, rownum, data=None, event=None):
         self.current_record = rownum
         if rownum is None:
             self.reset()
@@ -295,16 +295,16 @@ class DataRecordForm(tk.Frame):
 class RecordList(tk.Frame):
     column_defs = {
         '#0': {'label':'Row', 'anchor':tk.W},
-        'Case Number': {'label':'Case Number', 'width':100},
+        'Case Number': {'label':'Case Number', 'width':90},
         'Date of Registration': {'label':'Date of Registration', 'width':115},
-        'First Name':{'label':'First Name', 'width':150, 'stretch':True},
-        'Last Name':{'label':'Last Name', 'width':150, 'stretch':True},
+        'First Name':{'label':'First Name', 'width':150, 'anchor':tk.W, 'stretch':True},
+        'Last Name':{'label':'Last Name', 'width':150, 'anchor':tk.W, 'stretch':True},
         'Age': {'label':'Age(yrs)', 'width':80}, 
         'Height': {'label':'Height(ft)', 'width':80},
         'Weight': {'label':'Weight(kg)', 'width':80},       
-        'Date of Arrest': {'label':'Date of Arrest', 'width':150},
+        'Date of Arrest': {'label':'Date of Arrest', 'width':100},
         'Arresting Officer': {'label':'Arresting Officer', 'width':150, 'stretch':True},
-        'Class of Crime': {'label':'Class of Crime', 'width':100, 'stretch':True},
+        'Class of Crime': {'label':'Class of Crime', 'width':130, 'stretch':True},
         'Crime': {'label':'Crime', 'width':150, 'stretch':True}
 
     }
@@ -323,7 +323,7 @@ class RecordList(tk.Frame):
 
         #-- canvas --#
 
-        self.canvas = tk.Canvas(self, width=1000, height=630, highlightthickness=0)
+        self.canvas = tk.Canvas(self, width=1000, height=628, highlightthickness=0)
         self.xscrollbar = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self.canvas.xview)
 
         self.tree_frame = tk.Frame(self.canvas)
@@ -344,36 +344,20 @@ class RecordList(tk.Frame):
 
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
-        self.treeview.grid(row=0, column=0, sticky='NSEW')
+        self.treeview.grid(row=0, column=0, sticky='NSEW', rowspan=5)
 
         self.treeview.config(show = 'headings')
 
-        self.treeview.heading('#0', text='Row')
-        self.treeview.heading('Case Number', text='Case Number')
-        self.treeview.heading('Date of Registration', text='Date of Registration')
-        self.treeview.heading('First Name', text='First Name')
-        self.treeview.heading('Last Name', text='Last Name')
-        self.treeview.heading('Age', text='Age')
-        self.treeview.heading('Height', text='Height(ft)')
-        self.treeview.heading('Weight', text='Weight(kg)')
-        self.treeview.heading('Date of Arrest', text='Date of Arrest')
-        self.treeview.heading('Arresting Officer', text='Arresting Officer')
-        self.treeview.heading('Class of Crime', text='Class of Crime')
-        self.treeview.heading('Crime', text='Crime')
+        for name, definition in self.column_defs.items():
+            label = definition.get('label', '')
+            anchor = definition.get('anchor', self.default_anchor)
+            minwidth = definition.get('minwidth', self.default_minwidth)
+            width = definition.get('width', self.default_width)
+            stretch = definition.get('stretch', False)
 
-        self.treeview.column('#0', anchor=tk.CENTER, width=50, stretch=False)
-        self.treeview.column('Case Number', anchor=tk.CENTER, width=100, stretch=False)
-        self.treeview.column('Date of Registration', anchor=tk.CENTER, width=150, stretch=False)
-        self.treeview.column('First Name', anchor=tk.W, width=150, stretch=True)
-        self.treeview.column('Last Name', anchor=tk.W, width=150, stretch=True)
-        self.treeview.column('Age', anchor=tk.CENTER, width=80, stretch=False)
-        self.treeview.column('Height', anchor=tk.CENTER, width=80, stretch=False)
-        self.treeview.column('Weight', anchor=tk.CENTER, width=80, stretch=False)
-        self.treeview.column('Date of Arrest', anchor=tk.CENTER, width=100, stretch=False)
-        self.treeview.column('Arresting Officer', anchor=tk.CENTER, width=150, stretch=True)
-        self.treeview.column('Class of Crime', anchor=tk.W, width=125, stretch=True)
-        self.treeview.column('Crime', anchor=tk.CENTER, width=150, stretch=True)
-        
+            self.treeview.heading(name, text=label, anchor=self.default_anchor)
+            self.treeview.column(name, anchor=anchor, minwidth=minwidth, width=width, stretch=stretch)
+
         self.treeview.bind('<<TreeviewOpen>>', self.on_open_record)
 
         self.treeview.tag_configure('insert', background='lightblue')
@@ -381,7 +365,7 @@ class RecordList(tk.Frame):
 
         self.yscrollbar = ttk.Scrollbar(self.tree_frame, orient=tk.VERTICAL, command=self.treeview.yview)
         self.treeview.configure(yscrollcommand=self.yscrollbar.set)
-        self.yscrollbar.grid(row=0, column=1, sticky='NSW', rowspan=2)
+        self.yscrollbar.grid(row=0, column=1, sticky='NSW', rowspan=5)
 
     def _bound_to_mousewheel(self, event):
         self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
@@ -557,16 +541,16 @@ class SearchResult(tk.Toplevel):
 
     column_defs = {
         '#0': {'label':'Row', 'anchor':tk.W},
-        'Case Number': {'label':'Case Number', 'width':100},
+        'Case Number': {'label':'Case Number', 'width':90},
         'Date of Registration': {'label':'Date of Registration', 'width':115},
-        'First Name':{'label':'First Name', 'width':150, 'stretch':True},
-        'Last Name':{'label':'Last Name', 'width':150, 'stretch':True},
-        'Age': {'label':'Age(yrs)', 'width':80}, 
+        'First Name':{'label':'First Name', 'width':150, 'anchor':tk.W, 'stretch':True},
+        'Last Name':{'label':'Last Name', 'width':150, 'anchor':tk.W, 'stretch':True},
+        'Age': {'label':'Age(yrs)', 'width':70}, 
         'Height': {'label':'Height(ft)', 'width':80},
         'Weight': {'label':'Weight(kg)', 'width':80},       
-        'Date of Arrest': {'label':'Date of Arrest', 'width':150},
+        'Date of Arrest': {'label':'Date of Arrest', 'width':120},
         'Arresting Officer': {'label':'Arresting Officer', 'width':150, 'stretch':True},
-        'Class of Crime': {'label':'Class of Crime', 'width':100, 'stretch':True},
+        'Class of Crime': {'label':'Class of Crime', 'width':120, 'anchor':tk.W, 'stretch':True},
         'Crime': {'label':'Crime', 'width':150, 'stretch':True}
 
         }
@@ -574,7 +558,7 @@ class SearchResult(tk.Toplevel):
     default_minwidth = 10
     default_anchor = tk.CENTER
 
-    def __init__(self, parent, title=None):
+    def __init__(self, parent,  results, title=None):
         tk.Toplevel.__init__(self, parent)
         self.transient(parent)
         
@@ -582,6 +566,7 @@ class SearchResult(tk.Toplevel):
 
         self.parent = parent
         self.result = None
+        self.results= results
 
         body = tk.Frame(self)
         self.initial_focus = self.body(body)
@@ -611,7 +596,8 @@ class SearchResult(tk.Toplevel):
         frame = tk.Frame(self)
         frame.pack()
 
-        self.searchview = ttk.Treeview(self, columns=list(self.column_defs.keys())[1:], selectmode='browse')
+        self.searchview = ttk.Treeview(frame, columns=list(self.column_defs.keys())[1:], selectmode='browse')
+        self.searchview.config(show = 'headings')
 
         for name, definition in self.column_defs.items():
             label = definition.get('label', '')
@@ -620,8 +606,13 @@ class SearchResult(tk.Toplevel):
             width = definition.get('width', self.default_width)
             stretch = definition.get('stretch', False)
 
-            self.searchview.heading(name, text=label, anchor=anchor)
+            self.searchview.heading(name, text=label, anchor=self.default_anchor)
             self.searchview.column(name, anchor=anchor, minwidth=minwidth, width=width, stretch=stretch)
+        
+        self.searchview.grid(row=0, column=0, sticky='NSEW')
+        self.yscrollbar = ttk.Scrollbar(frame, orient='vertical', command=self.searchview.yview)
+        self.searchview.configure(yscrollcommand=self.yscrollbar.set)
+        self.yscrollbar.grid(row=0, column=1, sticky='NSW', rowspan=5)
         '''
         for index, x in enumerate(self.results):
             num=0
@@ -630,18 +621,17 @@ class SearchResult(tk.Toplevel):
                 label.grid(column=num, row=index)
                 num +=1
         '''
-    def searchview_populate(self, rows):
+    #def searchview_populate(self, results):
         for row in self.searchview.get_children():
             self.searchview.delete(row)
-
         valuekeys = list(self.column_defs.keys())[1:]
-        for rowdata in rows:
+        for rowdata in self.results:
             rowkey = (str(rowdata['Case Number']), str(rowdata['Date of Registration']))
             values = [rowdata[key] for key in valuekeys]
 
             stringkey = '{}|{}'.format(*rowkey)
             self.searchview.insert('', 'end', iid=stringkey, text=stringkey,
-                                 values=values, tag=tag)
+                                 values=values)
 
     def ok(self, event=None):
 

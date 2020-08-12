@@ -14,14 +14,16 @@ class Application(tk.Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.title('Criminal Tracker')
-        self.resizable(width=False, height=True)
+        self.resizable(width=False, height=False)
 
         self.taskbar_icon = tk.PhotoImage(file=ctracker_32)
         self.call('wm', 'iconphoto', self._w, self.taskbar_icon)
 
         # Shortcut keys
         self.bind_all("<Control-Key-s>", self.on_save)
-        self.bind_all("<Control-Key-n>", self.open_record)
+        #self.bind_all("<Control-Key-n>", self.new_record)
+        self.bind_all("<Control-Key-q>", self.close)
+        self.bind_all("<Control-Shift-Key-S>", self.save_in_csv)
 
         self.inserted_rows = []
         self.updated_rows = []
@@ -31,15 +33,15 @@ class Application(tk.Tk):
         self.settings_model = m.SettingsModel()
         self.load_settings()
 
-        self.database_login()
-        if not hasattr(self, 'data_model'):
-            self.destroy()
-            return
-
         style = ttk.Style()
         theme = self.settings.get('theme').get()
         if theme in style.theme_names():
             style.theme_use(theme)
+
+        self.database_login()
+        if not hasattr(self, 'data_model'):
+            self.destroy()
+            return
             
         self.callbacks = {'file->savein':self.save_in_csv,
                           'file->save':self.on_save,
@@ -88,15 +90,13 @@ class Application(tk.Tk):
         self.recordform = v.DataRecordForm(self.scrollable_frame, self.data_model.fields, self.settings, self.callbacks)
         self.recordform.grid(row=1, padx=10)
 
-        #self.recordlist = v.RecordList(self.tab2, self.callbacks, self.inserted_rows, self.updated_rows)
-
         #-- status bar --#
 
-        self.status_label = tk.Label(self.tab1, text= 'Status:', font=('Droid sans', 7), background='#008ae6', foreground='white')
-        self.status_label.grid(row=3, column=0, sticky=tk.W, pady=4)
+        self.status_label = tk.Label(self.tab1, text= 'Status:', font=('Droid sans', 8), background='#008ae6', foreground='white')
+        self.status_label.grid(row=3, column=0, sticky=tk.W, pady=2)
         
         self.status = tk.StringVar()
-        self.statusbar = tk.Label(self.tab1, textvariable=self.status, background='#008ae6', foreground='white')
+        self.statusbar = tk.Label(self.tab1, textvariable=self.status,  font=('Droid sans', 8), background='#008ae6', foreground='white')
         self.statusbar.grid(sticky=tk.W, row=3, column=1, padx=5)
 
         self.records_saved = 0
@@ -154,7 +154,7 @@ class Application(tk.Tk):
             self.recordform.reset()
 
 
-    def save_in_csv(self):
+    def save_in_csv(self, event=None):
         errors = self.recordform.get_errors()
         if errors:
             message = "Cannot Save record"
@@ -173,7 +173,7 @@ class Application(tk.Tk):
         model.save_record(data)     
                     
         self.records_saved_to_csv += 1
-        self.status.set("*****{} record(s) saved to csv in this session".format(self.records_saved_to_csv))
+        self.status.set("*****{} record(s) saved to csv in this session*****".format(self.records_saved_to_csv))
         self.recordform.reset()
         '''filename = filedialog.asksaveasfilename(
             title='Select the file for saving records',
@@ -187,7 +187,7 @@ class Application(tk.Tk):
 
 
 
-    def close(self):
+    def close(self, event=None):
         self.quit()
         self.destroy()
         exit()
@@ -230,8 +230,15 @@ class Application(tk.Tk):
             )
         else:
             self.recordlist.populate(rows)
+    '''
+    def new_record(self, rowkey=None, event=None):
+        if rowkey is None:
+            record = None
+        else:rowkey = rowkey
+        self.recordform.load_record(rowkey)
+    '''
 
-    def open_record(self, rowkey=None, event=None):
+    def open_record(self, rowkey=None):
         if rowkey is None:
             record = None
         else:
@@ -302,8 +309,8 @@ class Application(tk.Tk):
                         messagebox.showerror(title='Error', message=message, detail=detail)
                     else:
                         title = 'Search Result for "{}" by {}'.format(search_inp, category)
-                        #v.SearchResult(self, title).searchview_populate(results)
-                        v.SearchResult(self, title)
+                        searchResult=v.SearchResult(self, results, title)
+                        #searchResult.searchview_populate(results)
                         
 
                 
