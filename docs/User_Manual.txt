@@ -27,7 +27,7 @@ Menu bar contains regular menu bar options
 	* Options:
 		Autofill Date: when ticked it auto fills the "date of registration" column with the current date
 		Font size: for changing the size of the font for the app for better visualization 
-		themes: for changing themes of the app it only contains windows native themes
+		themes: for changing themes of the app it only contains windows native themes and the changes only takes effect after restart
 	* View:
 		Criminal list: this creates a tab that shows all records in the database on some selected columns
 		New Record: this resets the home tab for a new record entry
