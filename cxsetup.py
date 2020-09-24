@@ -25,7 +25,7 @@ shortcut_data = [
      '[TARGETDIR]'+target_name, None,
      'proposed application for criminal data entry and monitoring', None,
      None, None, None, 'TARGETDIR'),
-    ('MenuShortcut', 'ProgramMenuFolder', 'CRIMINAL_TRACKER', 'TAEGETDIR',
+    ('MenuShortcut', 'ProgramMenuFolder', 'CRIMINAL_TRACKER', 'TARGETDIR',
      '[TARGETDIR]'+target_name, None,
      'proposed application for criminal data entry and monitoring', None,
      None, None, None, 'TARGETDIR')
@@ -34,9 +34,8 @@ shortcut_data = [
 cx.setup(
     name = 'Criminal_Tracker',
     version = '1.0',
-    author = 'Ifeoluwa Abati',
-    #powered_by = 'Kurious Geek',
-    description = 'proposed application for criminal data entry and monitoring',
+    author = 'Kurious Geek',
+    description = 'multifunctional data entry application',
     packages = ['criminal_record'],
 
     executables = [

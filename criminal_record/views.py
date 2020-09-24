@@ -12,13 +12,22 @@ class MainMenu(tk.Menu):
     def __init__(self, parent, settings, callbacks, **kwargs):
         super().__init__(parent, **kwargs)
         file_menu = tk.Menu(self, tearoff=False)
-        file_menu.add_command(label='New Record ', command=callbacks['new_record'])
+        file_menu.add_command(label='New Arrest Form', command=callbacks['new_record'])
+        file_menu.add_command(label='New Incidence Form', command=callbacks['new_irecord'])
         file_menu.add_separator()
-        file_menu.add_command(label="Save                    Ctrl+S", command=callbacks['file->save'])
-        file_menu.add_command(label='Save in CSV       Ctrl+Shift+S', command=callbacks['file->savein'])
+        file_menu.add_command(label="Save Arrest Form", command=callbacks['saveAF'])
+        file_menu.add_command(label="Save Incidence Form", command=callbacks['saveIF'])
+        file_menu.add_command(label='Save in CSV                   Ctrl+Shift+S', command=callbacks['savein'])
         file_menu.add_separator()
-        file_menu.add_command(label='Exit                      Ctrl+Q', command=callbacks['file->quit'])
+        file_menu.add_command(label='Exit                                   Ctrl+Q', command=callbacks['quit'])
         self.add_cascade(label='File', menu=file_menu)
+
+        edit_menu = tk.Menu(self, tearoff=False)
+        edit_menu.add_command(label='Copy', command = '')
+        edit_menu.add_command(label='Cut', command='')
+        edit_menu.add_command(label='Paste', command='')
+        edit_menu.add_command(label='Select All', command='')
+        self.add_cascade(label='Edit', menu=edit_menu)
 
         options_menu = tk.Menu(self, tearoff=False)
         options_menu.add_checkbutton(label='Autofill Date', variable=settings['autofill date'])
@@ -43,12 +52,15 @@ class MainMenu(tk.Menu):
         self.add_cascade(label='Options', menu=options_menu)
 
         view_menu = tk.Menu(self, tearoff=False)
-        view_menu.add_command(label='Criminal List', command=callbacks['show_recordlist'])
-        view_menu.add_command(label='New Record', command=callbacks['new_record'])
+        view_menu.add_command(label='Arrest Record', command=callbacks['show_recordlist'])
+        view_menu.add_command(label='Incidence Record', command=callbacks['show_incidence_list'])
+        view_menu.add_command(label='Volent Inmates', command=callbacks['violent_list'])
+
         self.add_cascade(label='View', menu=view_menu)
 
         search_menu = tk.Menu(self, tearoff=False)
-        search_menu.add_command(label='Search Options...', command=callbacks['search'])
+        search_menu.add_command(label='Search Arrest Record', command=callbacks['search'])
+        search_menu.add_command(label='Search Incidence List', command=callbacks['search'])
         self.add_cascade(label='Search', menu=search_menu)
         
         help_menu = tk.Menu(self, tearoff=False)
@@ -58,9 +70,8 @@ class MainMenu(tk.Menu):
 
     def show_about(self):
         about_message = 'CRIMINAL TRACKER \nversion 2.0'
-        about_detail = ('by Halima Abati \nFor assistance please read the docs \nor contact the developer. '
+        about_detail = ('For assistance please read the docs \nor contact the developer. '
                         '\n\n\n\t\tpowered by Kurious Geek')
-        messagebox.showinfo(title='About Criminal Tracker', message=about_message, detail=about_detail)
 
     def view_help(self):
         """ """
@@ -72,6 +83,7 @@ class MainMenu(tk.Menu):
                   'Your work progrss might be lost\n'
                   'Do you want to continue?')
         messagebox.showwarning(title='Warning', message=message, detail=detail)
+
         
 class DataRecordForm(tk.Frame):
     def __init__(self, parent, fields, settings, callbacks, *args, **kwargs):
@@ -123,13 +135,9 @@ class DataRecordForm(tk.Frame):
         self.inputs['Age'].configure(background='#008ae6')
         self.inputs['Age'].grid(column=1, row=4)
         
-        self.inputs['Male'] = w.LabelInput(birth_info, 'Male', field_spec=fields['Male'], input_args={'style':'BackgroundCol.TCheckbutton'})
-        self.inputs['Male'].configure(background='#008ae6')
-        self.inputs['Male'].grid(column=3, row=4)
-
-        self.inputs['Female'] = w.LabelInput(birth_info, 'Female', field_spec=fields['Female'], input_args={'style':'BackgroundCol.TCheckbutton'})
-        self.inputs['Female'].configure(background='#008ae6')
-        self.inputs['Female'].grid(column=4, row=4)
+        self.inputs['Gender'] = w.LabelInput(birth_info, 'Gender:', field_spec=fields['Gender'], label_args={'style':'BackgroundCol.TLabel'})
+        self.inputs['Gender'].configure(background='#008ae6')
+        self.inputs['Gender'].grid(column=3, row=4)
 
         phy_desc = tk.LabelFrame(personal_info, text='Physical Description', bg='#008ae6', fg='white')
         phy_desc.grid(column=0, row=7, sticky='W', pady=5, padx=5, columnspan=3)
@@ -227,6 +235,10 @@ class DataRecordForm(tk.Frame):
         self.inputs['Ex-Convict'] = w.LabelInput(crime, 'Ex-Convict', field_spec=fields['Ex-Convict'], input_args={'style':'BackgroundCol.TCheckbutton'})
         self.inputs['Ex-Convict'].configure(background='#008ae6')
         self.inputs['Ex-Convict'].grid(column=1, row=8, sticky=tk.W)
+
+        self.inputs['Violent'] = w.LabelInput(crime, 'Violent', field_spec=fields['Violent'], input_args={'style':'BackgroundCol.TCheckbutton'})
+        self.inputs['Violent'].configure(background='#008ae6')
+        self.inputs['Violent'].grid(column=2, row=8, sticky=tk.W)
         
         self.inputs['Crime'] = w.LabelInput(crime, 'Crime:', field_spec=fields['Crime'], label_args={'style':'BackgroundCol.TLabel'})
         self.inputs['Crime'].configure(background='#008ae6')
@@ -234,9 +246,9 @@ class DataRecordForm(tk.Frame):
 
         self.inputs['Known Gang'] = w.LabelInput(crime, 'Known Gang:', field_spec=fields['Known Gang'], label_args={'style':'BackgroundCol.TLabel'})
         self.inputs['Known Gang'].configure(background='#008ae6')
-        self.inputs['Known Gang'].grid(column=1, row=9)
+        self.inputs['Known Gang'].grid(column=1, row=9, columnspan=2)
         
-        self.savebutton = ttk.Button(self, text="  Save  ", command=self.callbacks['save'])
+        self.savebutton = ttk.Button(self, text="  Save  ", command=self.callbacks['saveAF'])
         self.savebutton.grid(column=0, row=11, padx=10, pady=10, sticky='E')
 
         self.clearbutton = ttk.Button(self, text="  Clear  ", command=self.callbacks['clear'])
@@ -289,7 +301,10 @@ class DataRecordForm(tk.Frame):
         self.canvas.unbind_all('<MouseWheel>')
 
     def _on_mousewheel(self, event):
-        self.canvas.yview_scroll(int(-1*(event.delta/120)), 'units')     
+        self.canvas.yview_scroll(int(-1*(event.delta/120)), 'units') 
+
+    def focus(self):
+        self.inputs['First Name'].input.focus()    
 
 
 class RecordList(tk.Frame):
@@ -297,9 +312,10 @@ class RecordList(tk.Frame):
         '#0': {'label':'Row', 'anchor':tk.W},
         'Case Number': {'label':'Case Number', 'width':90},
         'Date of Registration': {'label':'Date of Registration', 'width':115},
-        'First Name':{'label':'First Name', 'width':150, 'anchor':tk.W, 'stretch':True},
-        'Last Name':{'label':'Last Name', 'width':150, 'anchor':tk.W, 'stretch':True},
-        'Age': {'label':'Age(yrs)', 'width':80}, 
+        'First Name':{'label':'First Name', 'width':120, 'anchor':tk.W, 'stretch':True},
+        'Last Name':{'label':'Last Name', 'width':120, 'anchor':tk.W, 'stretch':True},
+        'Age': {'label':'Age(yrs)', 'width':70},
+        'Gender': {'label': 'Gender', 'width':70}, 
         'Height': {'label':'Height(ft)', 'width':80},
         'Weight': {'label':'Weight(kg)', 'width':80},       
         'Date of Arrest': {'label':'Date of Arrest', 'width':100},
@@ -323,9 +339,10 @@ class RecordList(tk.Frame):
 
         #-- canvas --#
 
-        self.canvas = tk.Canvas(self, width=1000, height=628, highlightthickness=0)
+        self.canvas = tk.Canvas(self, width=970, height=623, highlightthickness=0)
         self.xscrollbar = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self.canvas.xview)
-
+        
+        
         self.tree_frame = tk.Frame(self.canvas)
         self.tree_frame.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL)))
         self.canvas.create_window((0, 0), window=self.tree_frame, anchor='nw')
@@ -336,16 +353,22 @@ class RecordList(tk.Frame):
 
         self.canvas.grid(row=0, column=0, sticky='NSEW')
         self.xscrollbar.grid(row=1, column=0, sticky='EWS')
+        
+
 
         #-- treeview --#
 
-        self.treeview = ttk.Treeview(self.tree_frame, columns=list(self.column_defs.keys())[1:],
+        self.treeview = ttk.Treeview(self.tree_frame, height=30, columns=list(self.column_defs.keys())[1:],
                                      selectmode='browse')
+        self.yscrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.treeview.yview)
+        self.yscrollbar.grid(row=0, column=1, sticky='NSW')
 
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
-        self.treeview.grid(row=0, column=0, sticky='NSEW', rowspan=5)
 
+        self.treeview.grid(row=0, column=0, sticky='NSWE')
+
+        self.treeview.configure(yscrollcommand=self.yscrollbar.set)
         self.treeview.config(show = 'headings')
 
         for name, definition in self.column_defs.items():
@@ -360,12 +383,8 @@ class RecordList(tk.Frame):
 
         self.treeview.bind('<<TreeviewOpen>>', self.on_open_record)
 
-        self.treeview.tag_configure('insert', background='lightblue')
-        self.treeview.tag_configure('update', background='grey') 
-
-        self.yscrollbar = ttk.Scrollbar(self.tree_frame, orient=tk.VERTICAL, command=self.treeview.yview)
-        self.treeview.configure(yscrollcommand=self.yscrollbar.set)
-        self.yscrollbar.grid(row=0, column=1, sticky='NSW', rowspan=5)
+        self.treeview.tag_configure('inserted', background='lightblue')
+        self.treeview.tag_configure('updated', background='grey') 
 
     def _bound_to_mousewheel(self, event):
         self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
@@ -493,17 +512,17 @@ class SearchDialog(Dialog):
 
         frame = tk.Frame(self)
 
-        self.keyword = tk.Label(frame, text='Keyword:')
+        self.keyword = tk.Label(frame, text='Keyword :')
         self.keyword.grid(column=0, row=0, pady=10, padx=10)
 
         self.search_box = tk.Entry(frame, textvariable=self.search_inp, width='22')
         self.search_box.grid(column=1, row=0, pady=10, padx=10)
 
-        self.Category = tk.Label(frame, text='Category:')
+        self.Category = tk.Label(frame, text='Category :')
         self.Category.grid(column=0, row=1, pady=10, padx=10)
 
         self.option_search = ttk.Combobox(frame, textvariable=self.category,
-                                     value=["   --select--", "Case Number", "Date of Registration", "First Name", "Last Name", "Male", "Female", "Age", "Nationality"])
+                                     value=["   --select--", "Case Number", "Date of Registration", "First Name", "Last Name", "Gender", "Age", "Arresting Officer", "Class of Crime"])
         self.option_search.current(0)
         self.option_search.grid(column=1, row=1, pady=10, padx=10)
 
@@ -534,8 +553,7 @@ class SearchDialog(Dialog):
        
     def apply(self):
         self.result = (self.category.get(), self.search_inp.get())
-
-        
+       
 
 class SearchResult(tk.Toplevel):
 
@@ -543,14 +561,32 @@ class SearchResult(tk.Toplevel):
         '#0': {'label':'Row', 'anchor':tk.W},
         'Case Number': {'label':'Case Number', 'width':90},
         'Date of Registration': {'label':'Date of Registration', 'width':115},
-        'First Name':{'label':'First Name', 'width':150, 'anchor':tk.W, 'stretch':True},
-        'Last Name':{'label':'Last Name', 'width':150, 'anchor':tk.W, 'stretch':True},
+        'First Name':{'label':'First Name', 'width':100, 'anchor':tk.W, 'stretch':True},
+        'Last Name':{'label':'Last Name', 'width':100, 'anchor':tk.W, 'stretch':True},
+        'Aliases':{'label':'Aliases', 'width':100, 'anchor':tk.W, 'stretch':True},
+        'Birth Date':{'label':'Birth Date', 'width':100},
         'Age': {'label':'Age(yrs)', 'width':70}, 
+        'Gender':{'label':'Gender', 'width':0},
         'Height': {'label':'Height(ft)', 'width':80},
-        'Weight': {'label':'Weight(kg)', 'width':80},       
-        'Date of Arrest': {'label':'Date of Arrest', 'width':120},
+        'Weight': {'label':'Weight(kg)', 'width':80},
+        'Eye Color':{'label':'Eye Color', 'width':80, 'anchor':tk.W},
+        'Hair Color':{'label':'Hair Color', 'width':80, 'anchor':tk.W},
+        'Body Build':{'label':'Build(Body Type)', 'width':100},
+        'Mutation':{'label':'Mutation(short description)', 'width':150, 'stretch':True},
+        'Scars and Marks':{'label':'Scars & Marks(short description)', 'width':165, 'stretch':True},
+        'Nationality':{'label':'Nationality', 'width':115, 'stretch':True},
+        'State':{'label':'State', 'width':100, 'stretch':True},
+        'LGA':{'label':'LGA', 'width':80, 'stretch':True},
+        'Residence Address':{'label':'Residence Address', 'width':150, 'stretch':True},      
+        'Date of Arrest':{'label':'Date of Arrest', 'width':100},
         'Arresting Officer': {'label':'Arresting Officer', 'width':150, 'stretch':True},
-        'Class of Crime': {'label':'Class of Crime', 'width':120, 'anchor':tk.W, 'stretch':True},
+        'Place of Arrest': {'label':'Place of Arrest', 'width':150, 'stretch':True},
+        'Area': {'label':'Area', 'width':70},
+        'Division':{'label':'Division', 'width':70, 'anchor':tk.CENTER},
+        'Ex-Convict':{'label':'Ex-Convict', 'width':90},
+        'Violent':{'label':'Violent', 'width':90},
+        'Class of Crime': {'label':'Class of Crime', 'width':130, 'anchor':tk.W, 'stretch':True},
+        'Known Gang': {'label':'Known Gang', 'width':120, 'stretch':True},
         'Crime': {'label':'Crime', 'width':150, 'stretch':True}
 
         }
@@ -558,7 +594,7 @@ class SearchResult(tk.Toplevel):
     default_minwidth = 10
     default_anchor = tk.CENTER
 
-    def __init__(self, parent,  results, title=None):
+    def __init__(self, parent, results, title=None):
         tk.Toplevel.__init__(self, parent)
         self.transient(parent)
         
@@ -568,11 +604,9 @@ class SearchResult(tk.Toplevel):
         self.result = None
         self.results= results
 
-        body = tk.Frame(self)
-        self.initial_focus = self.body(body)
-        body.pack(padx=5, pady=5)
+        self.initial_focus = self.body()
 
-        #self.buttonbox()
+        self.buttonbox()
 
         self.grab_set()
 
@@ -588,16 +622,28 @@ class SearchResult(tk.Toplevel):
 
         self.wait_window(self)
 
-    def body(self, parent):
+    def body(self):
 
         self.taskbar_icon = tk.PhotoImage(file=ctracker_32)
         self.tk.call('wm', 'iconphoto', self._w, self.taskbar_icon)
 
-        frame = tk.Frame(self)
-        frame.pack()
+        self.rcanvas = tk.Canvas(self, width=600, height=400, highlightthickness=0)
+        self.xscrollbar = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self.rcanvas.xview)
 
-        self.searchview = ttk.Treeview(frame, columns=list(self.column_defs.keys())[1:], selectmode='browse')
+        frame = tk.Frame(self.rcanvas)
+        frame.bind('<Configure>', lambda e: self.rcanvas.configure(scrollregion=self.rcanvas.bbox(tk.ALL)))
+        self.rcanvas.create_window((0, 0), window=frame, anchor='nw')
+        self.rcanvas.configure(xscrollcommand=self.xscrollbar.set)
+
+        self.rcanvas.grid(row=0, column=0, sticky='NSEW')
+        self.xscrollbar.grid(row=1, column=0, sticky='EWS', columnspan=2)
+
+        self.searchview = ttk.Treeview(frame, height=30, columns=list(self.column_defs.keys())[1:], selectmode='browse')
+        self.yscrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.searchview.yview)
+        self.yscrollbar.grid(row=0, column=1, sticky='NSW')
+        
         self.searchview.config(show = 'headings')
+        self.searchview.configure(yscrollcommand=self.yscrollbar.set)
 
         for name, definition in self.column_defs.items():
             label = definition.get('label', '')
@@ -610,9 +656,8 @@ class SearchResult(tk.Toplevel):
             self.searchview.column(name, anchor=anchor, minwidth=minwidth, width=width, stretch=stretch)
         
         self.searchview.grid(row=0, column=0, sticky='NSEW')
-        self.yscrollbar = ttk.Scrollbar(frame, orient='vertical', command=self.searchview.yview)
-        self.searchview.configure(yscrollcommand=self.yscrollbar.set)
-        self.yscrollbar.grid(row=0, column=1, sticky='NSW', rowspan=5)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
         '''
         for index, x in enumerate(self.results):
             num=0
@@ -621,7 +666,6 @@ class SearchResult(tk.Toplevel):
                 label.grid(column=num, row=index)
                 num +=1
         '''
-    #def searchview_populate(self, results):
         for row in self.searchview.get_children():
             self.searchview.delete(row)
         valuekeys = list(self.column_defs.keys())[1:]
@@ -633,6 +677,17 @@ class SearchResult(tk.Toplevel):
             self.searchview.insert('', 'end', iid=stringkey, text=stringkey,
                                  values=values)
 
+    def buttonbox(self):
+        box = tk.Frame(self)
+
+        csvbtn = tk.Button(box, text='Extract to CSV', command=self.ok)
+        csvbtn.pack(side=tk.LEFT, pady=5, padx=5)
+
+        canbtn = tk.Button(box, text=' Close ', command=self.cancel)
+        canbtn.pack(side=tk.LEFT, pady=5, padx=5)
+
+        box.grid()
+
     def ok(self, event=None):
 
         if not self.validate():
@@ -643,8 +698,7 @@ class SearchResult(tk.Toplevel):
         self.update_idletasks()
 
         self.apply()
-
-        self.cancel()
+        #self.cancel()
 
     def cancel(self, event=None):
 
@@ -660,9 +714,445 @@ class SearchResult(tk.Toplevel):
         pass 
 
 
+class IncidenceForm(tk.Frame):
+    def __init__(self, parent, fields, settings, callbacks, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self.settings = settings
+        self.callbacks = callbacks
+        self.current_record = None
+        self.config(background='#008ae6')
+
+        style = ttk.Style()
+        style.configure('BackgroundCol.TLabel', background='#008ae6', foreground='white')
+        style.configure('BackgroundCol.TCheckbutton', background='#008ae6', foreground='white')
+        
+        self.inputs = {}
+
+        self.canvas = tk.Canvas(self, width=970, height=600, highlightthickness=0, bg='#008ae6')
+        yscrollbar = tk.Scrollbar(self, orient='vertical', command=self.canvas.yview)
+        xscrollbar = tk.Scrollbar(self, orient='horizontal', command=self.canvas.xview)
+
+        self.scroll_frame = tk.Frame(self.canvas)
+        self.scroll_frame.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL)))
+        self.canvas.create_window((0, 0), window=self.scroll_frame, anchor='nw')
+        self.canvas.configure(xscrollcommand=xscrollbar.set, yscrollcommand=yscrollbar.set)
+
+        self.scroll_frame.bind('<Enter>', self._bound_to_mousewheel)
+        self.scroll_frame.bind('<Leave>', self._unbound_to_mousewheel)
+
+        self.scroll_frame.config(bg='#008ae6')
+
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)       
+
+        self.canvas.grid(row=0, column=0, sticky='NSEW', columnspan=2)
+        yscrollbar.grid(row=0, column=3, sticky='NS', rowspan=2, columnspan=2)
+        xscrollbar.grid(row=1, column=0, sticky='EW', columnspan=2)        
+
+        self.logo = tk.PhotoImage(file=ctracker_64)
+        self.logo_label=tk.Label(self.scroll_frame, image=self.logo, highlightthickness=0, borderwidth=0, background='#008ae6')
+        self.logo_label.grid(row=0, columnspan=5, pady=10)
+
+        self.form_label = ttk.Label(self.scroll_frame, style='BackgroundCol.TLabel')
+        self.form_label.grid(row=1, columnspan=5)
+
+        self.frame = tk.Frame(self.scroll_frame, bg='#008ae6')
+        self.frame.grid(row=2, padx=25, pady=10)
+
+        self.inputs['CaseID'] = w.LabelInput(self.frame, "CaseID:", field_spec=fields['CaseID'], label_args={'style': 'BackgroundCol.TLabel'})
+        self.inputs['CaseID'].configure(background='#008ae6')
+        self.inputs['CaseID'].grid(row=1, column=0, sticky=tk.W) 
+
+        self.inputs['Registration Date'] = w.LabelInput(self.frame, "Registration Date:", field_spec=fields['Registration Date'], label_args={'style': 'BackgroundCol.TLabel'})
+        self.inputs['Registration Date'].configure(background='#008ae6')
+        self.inputs['Registration Date'].grid(row=1, column=1, sticky=tk.W)
+
+        self.inputs['Full Name'] = w.LabelInput(self.frame, "Full Name:", field_spec=fields['Full Name'], label_args={'style': 'BackgroundCol.TLabel'})
+        self.inputs['Full Name'].configure(background='#008ae6')
+        self.inputs['Full Name'].grid(row=1, column=2, sticky=tk.W, columnspan=2)
+
+        self.inputs['Contact'] = w.LabelInput(self.frame, "Contact:", field_spec=fields['Contact'], label_args={'style': 'BackgroundCol.TLabel'})
+        self.inputs['Contact'].configure(background='#008ae6')
+        self.inputs['Contact'].grid(row=1, column=4, sticky=tk.W)
+
+        self.inputs['Officer in Charge'] = w.LabelInput(self.frame, "Officer in Charge:", field_spec=fields['Officer in Charge'], label_args={'style': 'BackgroundCol.TLabel'})
+        self.inputs['Officer in Charge'].configure(background='#008ae6')
+        self.inputs['Officer in Charge'].grid(row=2, column=0, sticky=tk.W, columnspan=5)
+
+        self.inputs['District'] = w.LabelInput(self.frame, "District:", field_spec=fields['District'], label_args={'style': 'BackgroundCol.TLabel'})
+        self.inputs['District'].configure(background='#008ae6')
+        self.inputs['District'].grid(row=2, column=3, sticky=tk.W, columnspan=2)
+
+        self.inputs['Statement'] = w.LabelInput(self.frame, "Statement:", field_spec=fields['Statement'], label_args={'style': 'BackgroundCol.TLabel'})
+        self.inputs['Statement'].configure(background='#008ae6')
+        self.inputs['Statement'].grid(row=3, column=0, sticky=tk.W, columnspan=4, rowspan=4)
+
+        self.inputs['Type of Incidence'] = w.LabelInput(self.frame, 'Type of Incidence:', field_spec=fields['Type of Incidence'], label_args={'style':'BackgroundCol.TLabel'})
+        self.inputs['Type of Incidence'].configure(background='#008ae6')
+        self.inputs['Type of Incidence'].grid(row=3, column=4, sticky=tk.W)
+
+        self.inputs['Evidence'] = w.LabelInput(self.frame, 'Evidence:', field_spec=fields['Evidence'], label_args={'style':'BackgroundCol.TLabel'})
+        self.inputs['Evidence'].configure(background='#008ae6')
+        self.inputs['Evidence'].grid(row=4, column=4, sticky=tk.W)
+
+        self.inputs['Witness'] = w.LabelInput(self.frame, 'Witness:', field_spec=fields['Witness'], label_args={'style':'BackgroundCol.TLabel'})
+        self.inputs['Witness'].configure(background='#008ae6')
+        self.inputs['Witness'].grid(row=5, column=4, sticky=tk.W)
+
+        self.inputs['Other Info'] = w.LabelInput(self.frame, 'Other Info:', field_spec=fields['Other Info'], label_args={'style':'BackgroundCol.TLabel'})
+        self.inputs['Other Info'].configure(background='#008ae6')
+        self.inputs['Other Info'].grid(row=6, column=4, sticky=tk.W)
+
+        butnframe = tk.Frame(self.scroll_frame, bg='#008ae6')
+        butnframe.grid(row=7, columnspan=5)
+
+        self.savebuton = ttk.Button(butnframe, text="  Save  ", command=self.callbacks['saveIF'])
+        self.savebuton.grid(column=0, row=1, padx=10, pady=10, sticky='E')
+
+        self.clearbuton = ttk.Button(butnframe, text="  Clear  ", command=self.reset )
+        self.clearbuton.grid(column=1, row=1, pady=10, padx=10, sticky='W') 
+
+        self.reset() 
+
+    def _bound_to_mousewheel(self, event):
+        self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
+
+    def _unbound_to_mousewheel(self, event):
+        self.canvas.unbind_all('<MouseWheel>')
+
+    def _on_mousewheel(self, event):
+        self.canvas.yview_scroll(int(-1*(event.delta/120)), 'units')      
+
+    def reset(self):
+        for widget in self.inputs.values():
+            widget.set('')
+            
+        if self.settings['autofill date'].get():    
+            current_date = datetime.today().strftime('%Y-%m-%d')
+            self.inputs['Registration Date'].set(current_date)
+            self.inputs['CaseID'].input.focus()
+
+    def get(self):
+        data = {}
+        for key, widget in self.inputs.items():
+            data[key] = widget.get()
+        return data
+
+    def get_errors(self):
+        errors = {}
+        for key, widget in self.inputs.items():
+            if hasattr(widget.input, 'trigger_focusout_validation'):
+                widget.input.trigger_focusout_validation()
+            if widget.error.get():
+                errors[key] = widget.error.get()
+
+        return errors
+
+    def load_record(self, rownum, data=None, event=None):
+        self.current_record = rownum
+        if rownum is None:
+            self.reset()
+            self.form_label.config(text='New Record')
+        else:
+            self.form_label.config(text='Record #{}'.format(rownum))
+            for key, widget in self.inputs.items():
+                self.inputs[key].set(data.get(key, ''))
+                try:
+                    widget.input.trigger_focusout_validation()
+                except AttributeError:
+                    pass    
+
+    def focus(self):
+        self.inputs['CaseID'].input.focus()
 
 
+class IncidenceList(tk.Frame):
+
+    icolumn_defs = {
+        '#0': {'label':'Row', 'anchor':tk.W},
+        'CaseID': {'label':'CaseID', 'width':90},
+        'Registration Date': {'label':'Registration Date', 'width':115},
+        'Full Name':{'label':'Full Name', 'width':130, 'anchor':tk.W, 'stretch':True},
+        'Contact':{'label':'Contact', 'width':120, 'anchor':tk.W, 'stretch':True},
+        'Officer in Charge': {'label':'Officer in Charge', 'width':120, 'anchor':tk.W, 'stretch':True},
+        'District': {'label': 'District', 'width':90}, 
+        'Statement': {'label':'Statement', 'width':150, 'anchor':tk.W, 'stretch':True},
+        'Type of Incidence': {'label':'Type of Incidence', 'width':120},       
+        'Evidence': {'label':'Evidence', 'width':150, 'anchor':tk.W, 'stretch':True},
+        'Witness': {'label':'Witness', 'width':120, 'anchor':tk.W, 'stretch':True},
+        'Other Info': {'label':'Other Info', 'width':150, 'anchor':tk.W, 'stretch':True}
+
+    }
+
+    default_width = 100
+    default_minwidth = 10
+    default_anchor = tk.CENTER
+
+    def __init__(self, parent, callbacks, inserted, updated, *args, **kwargs):
+
+        self.inserted = inserted
+        self.updated = updated
+        
+        super().__init__(parent, *args, **kwargs)
+        self.callbacks = callbacks
+
+        #-- canvas --#
+
+        self.canvas = tk.Canvas(self, width=970, height=623, highlightthickness=0)
+        self.xscrollbar = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self.canvas.xview)
+        
+        
+        self.tree_frame = tk.Frame(self.canvas)
+        self.tree_frame.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL)))
+        self.canvas.create_window((0, 0), window=self.tree_frame, anchor='nw')
+        self.canvas.configure(xscrollcommand=self.xscrollbar.set)
+
+        self.tree_frame.bind('<Enter>', self._bound_to_mousewheel)
+        self.tree_frame.bind('<Leave>', self._unbound_to_mousewheel)
+
+        self.canvas.grid(row=0, column=0, sticky='NSEW')
+        self.xscrollbar.grid(row=1, column=0, sticky='EWS')
+        
+
+        #-- treeview --#
+
+        self.treeview = ttk.Treeview(self.tree_frame, height=30, columns=list(self.icolumn_defs.keys())[1:],
+                                     selectmode='browse')
+        self.yscrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.treeview.yview)
+        self.yscrollbar.grid(row=0, column=1, sticky='NSW')
+
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
+        self.treeview.grid(row=0, column=0, sticky='NSWE')
+
+        self.treeview.configure(yscrollcommand=self.yscrollbar.set)
+        self.treeview.config(show = 'headings')
+
+        for name, definition in self.icolumn_defs.items():
+            label = definition.get('label', '')
+            anchor = definition.get('anchor', self.default_anchor)
+            minwidth = definition.get('minwidth', self.default_minwidth)
+            width = definition.get('width', self.default_width)
+            stretch = definition.get('stretch', False)
+
+            self.treeview.heading(name, text=label, anchor=anchor)
+            self.treeview.column(name, anchor=anchor, minwidth=minwidth, width=width, stretch=stretch)
+
+        self.treeview.bind('<<TreeviewOpen>>', self.on_open_irecord)
+
+        self.treeview.tag_configure('insert', background='lightblue')
+        self.treeview.tag_configure('update', background='grey') 
+
+    def _bound_to_mousewheel(self, event):
+        self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
+
+    def _unbound_to_mousewheel(self, event):
+        self.canvas.unbind_all('<MouseWheel>')
+
+    def _on_mousewheel(self, event):
+        self.treeview.yview_scroll(int(-1*(event.delta/120)), 'units')
+
+    def populate(self, rows):
+
+        for row in self.treeview.get_children():
+            self.treeview.delete(row)
+
+        valuekeys = list(self.icolumn_defs.keys())[1:]
+        for rowdata in rows:
+            rowkey = (str(rowdata['CaseID']), str(rowdata['Registration Date']))
+            values = [rowdata[key] for key in valuekeys]
+
+            if self.inserted and rowkey in self.inserted:
+                tag = 'inserted'
+            elif self.updated and rowkey in self.updated:
+                tag = 'updated'
+            else:
+                tag = ''
+            stringkey = '{}|{}'.format(*rowkey)
+            self.treeview.insert('', 'end', iid=stringkey, text=stringkey,
+                                 values=values, tag=tag)
+
+        if len(rows) > 0:
+            firstrow = self.treeview.identify_row(0)
+            self.treeview.focus_set()
+            self.treeview.selection_set(firstrow)
+            self.treeview.focus(firstrow)
+
+    def on_open_irecord(self, *args):
+        selected_id = self.treeview.selection()[0]
+        self.callbacks['on_open_irecord'](selected_id.split('|'))    
 
 
+class ViolentList(tk.Toplevel):
+
+    column_defs = {
+        '#0': {'label':'Row', 'anchor':tk.W},
+        'Case Number': {'label':'Case Number', 'width':90},
+        'First Name':{'label':'First Name', 'width':150, 'anchor':tk.W, 'stretch':True},
+        'Last Name':{'label':'Last Name', 'width':150, 'anchor':tk.W, 'stretch':True}
+        }
+
+    default_width = 100
+    default_minwidth = 10
+    default_anchor = tk.CENTER
+
+    def __init__(self, parent, callbacks, results, title=None):
+        tk.Toplevel.__init__(self, parent)
+        self.transient(parent)
+        self.resizable(width=False, height=True)
+        self.title(title)
+
+        self.parent = parent
+        self.callbacks = callbacks
+        self.result = None
+        self.results= results
+
+        self.initial_focus = self.body()
+
+        self.buttonbox()
+
+        self.grab_set()
+
+        if not self.initial_focus:
+            self.initial_focus = self
+
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
+
+        self.geometry("+%d+%d" % (parent.winfo_rootx()+50,
+                                  parent.winfo_rooty()+50))
+
+        self.initial_focus.focus_set()
+
+        self.wait_window(self)
+
+    def body(self):
+
+        self.taskbar_icon = tk.PhotoImage(file=ctracker_32)
+        self.tk.call('wm', 'iconphoto', self._w, self.taskbar_icon)
+
+        frame = tk.Frame(self)
+        frame.grid(row=0, column=0)
+
+        self.violent_list_view = ttk.Treeview(frame, height=25, columns=list(self.column_defs.keys())[1:], selectmode='browse')
+        self.yscrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.violent_list_view.yview)
+        self.yscrollbar.grid(row=0, column=1, sticky='NSE')
+        
+        self.violent_list_view.config(show = 'headings')
+        self.violent_list_view.configure(yscrollcommand=self.yscrollbar.set)
+
+        for name, definition in self.column_defs.items():
+            label = definition.get('label', '')
+            anchor = definition.get('anchor', self.default_anchor)
+            minwidth = definition.get('minwidth', self.default_minwidth)
+            width = definition.get('width', self.default_width)
+            stretch = definition.get('stretch', False)
+
+            self.violent_list_view.heading(name, text=label, anchor=self.default_anchor)
+            self.violent_list_view.column(name, anchor=anchor, minwidth=minwidth, width=width, stretch=stretch)
+        
+        self.violent_list_view.bind('<<TreeviewOpen>>', self.on_open_list)
+
+        self.violent_list_view.grid(row=0, column=0, sticky='NSEW')
+        self.rowconfigure(0, weight=1)
+
+        for row in self.violent_list_view.get_children():
+            self.violent_list_view.delete(row)
+        valuekeys = list(self.column_defs.keys())[1:]
+        for rowdata in self.results:
+            rowkey = (str(rowdata['Case Number']), str(rowdata['First Name']))
+            values = [rowdata[key] for key in valuekeys]
+
+            stringkey = '{}|{}'.format(*rowkey)
+            self.violent_list_view.insert('', 'end', iid=stringkey, text=stringkey,
+                                 values=values)
+
+    def buttonbox(self):
+        box = tk.Frame(self)
+
+        csvbtn = tk.Button(box, text='Extract to CSV', command=self.ok)
+        csvbtn.pack(side=tk.LEFT, pady=5, padx=5)
+
+        canbtn = tk.Button(box, text=' Close ', command=self.cancel)
+        canbtn.pack(side=tk.LEFT, pady=5, padx=5)
+
+        box.grid()
+
+    def ok(self, event=None):
+
+        if not self.validate():
+            self.initial_focus.focus_set()
+            return
+
+        self.withdraw()
+        self.update_idletasks()
+
+        self.apply()
+        #self.cancel()
+
+    def cancel(self, event=None):
+
+        self.parent.focus_set()
+        self.destroy()
+
+    def validate(self):
+
+        return 1 
+
+    def apply(self):
+
+        pass 
+
+    def on_open_list(self, *args):
+        selected_id = self.violent_list_view.selection()[0]
+        self.callbacks['on_open_vlist'](selected_id.split('|'))
+        
+
+class ViolentData(tk.Toplevel):
+
+    def __init__(self, parent, results, title = None):
+
+        tk.Toplevel.__init__(self, parent)
+        self.transient(parent)
+
+        if title:
+            self.title(title)
+
+        self.parent = parent
+        self.result = None
+        self.results = results
+
+        body = tk.Frame(self)
+        self.initial_focus = self.body(body)
+        body.grid(padx=5, pady=5)
+
+        self.grab_set()
+
+        if not self.initial_focus:
+            self.initial_focus = self
+
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
+
+        self.geometry("+%d+%d" % (parent.winfo_rootx()+50,
+                                  parent.winfo_rooty()+50))
+
+        self.initial_focus.focus_set()
+
+        self.wait_window(self)
 
 
+    def body(self, master):
+        for index, x in enumerate(self.results):
+            num=0
+            for y in x:
+                label = tk.Label(self, text=y)
+                label.grid(column=num, row=index)
+                num +=1
+
+
+    def cancel(self, event=None):
+
+        # put focus back to the parent window
+        self.parent.focus_set()
+        self.destroy()

@@ -14,12 +14,13 @@ class Application(tk.Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.title('Criminal Tracker')
-        self.resizable(width=False, height=False)
+        self.resizable(width=True, height=True)
 
         self.taskbar_icon = tk.PhotoImage(file=ctracker_32)
         self.call('wm', 'iconphoto', self._w, self.taskbar_icon)
 
-        # Shortcut keys
+        #-- Shortcut keys --#
+
         self.bind_all("<Control-Key-s>", self.on_save)
         #self.bind_all("<Control-Key-n>", self.new_record)
         self.bind_all("<Control-Key-q>", self.close)
@@ -43,33 +44,36 @@ class Application(tk.Tk):
             self.destroy()
             return
             
-        self.callbacks = {'file->savein':self.save_in_csv,
-                          'file->save':self.on_save,
-                          'save':self.on_save,
-                          'file->quit':self.close,
+        self.callbacks = {'savein':self.save_in_csv,
+                          'saveAF':lambda:self.on_save('arrest'),
+                          'saveIF':lambda:self.on_save('incidence'),
+                          'quit':self.close,
                           'clear':self.clear,
                           'show_recordlist':self.show_recordlist,
                           'on_open_record':self.open_record,
+                          'on_open_irecord':self.open_irecord,
                           'new_record':self.open_record,
-                          'search': self.search_options
+                          'new_irecord':self.open_irecord,
+                          'search': self.search_options,
+                          'show_incidence_list':self.show_incidence_list,
+                          'violent_list':self.violent_list,
+                          'on_open_vlist':self.open_vlist
                           
         }  
+
+        #-- Menu --#
 
         menu = v.MainMenu(self, self.settings, self.callbacks)
         self.config(menu=menu)
 
-        #-- Tabs --#
-        
-        self.tabs = ttk.Notebook(self)
+        #-- Arrest Form Tab --#
+   
+        self.tabs = ttk.Notebook(self)   
         self.tab1 = tk.Frame(self.tabs, bg='#008ae6')
-        self.tab2 = tk.Frame(self.tabs)
-
-        self.tabs.add(self.tab1, text='  Home  ')
+        self.tabs.add(self.tab1, text='  Arrest Form  ')
         self.tabs.pack(expand=1, fill='both')
 
-        #-- canvas --#
-
-        self.canvas = tk.Canvas(self.tab1, width=985, height=600, highlightthickness=0, bg='#008ae6')
+        self.canvas = tk.Canvas(self.tab1, width=970, height=600, highlightthickness=0, bg='#008ae6')
         yscrollbar = tk.Scrollbar(self.tab1, orient='vertical', command=self.canvas.yview)
         xscrollbar = tk.Scrollbar(self.tab1, orient='horizontal', command=self.canvas.xview)
 
@@ -83,76 +87,159 @@ class Application(tk.Tk):
 
         self.scrollable_frame.config(bg='#008ae6')
 
-        self.canvas.grid(row=0, column=0, sticky='NSEW', columnspan=2)
-        yscrollbar.grid(row=0, column=3, sticky='NS', rowspan=2, columnspan=2)
+        self.canvas.grid(row=0, column=0, sticky='NSEW')#, columnspan=2)
+        yscrollbar.grid(row=0, column=3, sticky='NS', rowspan=2)
         xscrollbar.grid(row=1, column=0, sticky='EW', columnspan=2) 
-        
+
         self.recordform = v.DataRecordForm(self.scrollable_frame, self.data_model.fields, self.settings, self.callbacks)
         self.recordform.grid(row=1, padx=10)
 
-        #-- status bar --#
+        drf = tk.Frame(self.tab1, bg='#008ae6')
+        drf.grid(row=2, sticky=tk.W)
 
-        self.status_label = tk.Label(self.tab1, text= 'Status:', font=('Droid sans', 8), background='#008ae6', foreground='white')
-        self.status_label.grid(row=3, column=0, sticky=tk.W, pady=2)
+        self.status_label = tk.Label(drf, text= 'Status:', font=('Droid sans', 8), background='#008ae6', foreground='white')
+        self.status_label.grid(row=0, column=0, sticky=tk.W, pady=2)
         
         self.status = tk.StringVar()
-        self.statusbar = tk.Label(self.tab1, textvariable=self.status,  font=('Droid sans', 8), background='#008ae6', foreground='white')
-        self.statusbar.grid(sticky=tk.W, row=3, column=1, padx=5)
+        self.statusbar = tk.Label(drf, textvariable=self.status,  font=('Droid sans', 8), background='#008ae6', foreground='white')
+        self.statusbar.grid(row=0, column=1, sticky=tk.W, padx=5)
+
+        self.canvas.columnconfigure(0, weight=1)
+        self.canvas.rowconfigure(0, weight=1)
+    
+        self.tab1.rowconfigure(0, weight=1)
+        self.tab1.columnconfigure(0, weight=1)
+
+        #-- Incidence Form Tab --#
+
+        self.tab2 = tk.Frame(self.tabs, bg='#008ae6')
+        self.tabs.add(self.tab2, text=' Incidence Form ')
+        self.tabs.pack(expand=1, fill='both')
+
+        self.incidence_form = v.IncidenceForm(self.tab2, self.data_model.fields1, self.settings, self.callbacks)
+        self.incidence_form.grid(row=0, sticky='NSWE')
+        
+        frame = tk.Frame(self.tab2, bg='#008ae6')
+        frame.grid(row=1, sticky=tk.W)
+
+        self.ifstatus_label = tk.Label(frame, text= 'Status:', font=('Droid sans', 8), background='#008ae6', foreground='white')
+        self.ifstatus_label.grid(row=1, column=0, sticky=tk.W, pady=2)
+        
+        self.ifstatus = tk.StringVar()
+        self.ifstatusbar = tk.Label(frame, textvariable=self.ifstatus,  font=('Droid sans', 8), background='#008ae6', foreground='white')
+        self.ifstatusbar.grid(row=1, column=1, sticky=tk.W, padx=10)
+        #self.incidence_form.tkraise()
+
+        self.tab2.rowconfigure(0, weight=1)
+        self.tab2.columnconfigure(0, weight=1)
+
+        #-- Arrest Record Tab --#
+
+        self.tab3 = tk.Frame(self.tabs)
+        self.recordlist = v.RecordList(self.tab3, self.callbacks, self.inserted_rows, self.updated_rows)
+        self.tab3.rowconfigure(0, weight=1)
+        self.tab3.columnconfigure(0, weight=1)
+        
+        #-- Incidence Record Tab --#
+
+        self.tab4 = tk.Frame(self.tabs)
+        self.incidencelist = v.IncidenceList(self.tab4, self.callbacks, self.inserted_rows, self.updated_rows)
 
         self.records_saved = 0
         self.records_saved_to_csv = 0
+        self.records_on_if_saved = 0
 
     def _bound_to_mousewheel(self, event):
         self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
 
-    def _unbound_to_mousewheel(self,event):
+    def _unbound_to_mousewheel(self, event):
         self.canvas.unbind_all('<MouseWheel>')
 
     def _on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-1*(event.delta/120)), 'units')
         
     def show_recordlist(self):
-        self.tabs.add(self.tab2, text=' Criminal List ')
+        self.tabs.add(self.tab3, text=' Arrest Record ')
         self.tabs.pack(expand=1, fill='both')
-        self.recordlist = v.RecordList(self.tab2, self.callbacks, self.inserted_rows, self.updated_rows)
-        self.recordlist.grid(row=0, sticky='W')
-        self.recordlist.tkraise()
+        self.recordlist.grid(row=0, sticky='NSWE')
         self.populate_recordlist()
 
-    def on_save(self, event=None):
+    def show_incidence_list(self):
+        self.tabs.add(self.tab4, text=' Incidence Record ')
+        self.tabs.pack(expand=1, fill='both')
+        self.incidencelist.grid(row=0, sticky='NSWE')
+        self.populate_incidencelist()
 
-        errors = self.recordform.get_errors()
-        if errors:
-            message = "Cannot Save Record"
-            detail = "The following fields have errors: \n * {}".format('\n * '.join(errors.keys()))
-            
-            messagebox.showerror(title='Error', message=message, detail=detail)
+
+    def on_save(self, form, event=None):
+
+        if form == 'arrest':
+
+            errors = self.recordform.get_errors()
+            if errors:
+                message = "Cannot Save Record"
+                detail = "The following fields have errors: \n * {}".format('\n * '.join(errors.keys()))
                 
-            return False
+                messagebox.showerror(title='Error', message=message, detail=detail)
+                    
+                return False
 
-        data = self.recordform.get()
-        rownum = self.recordform.current_record
-        try:
-            self.data_model.save_record(data)
-        
-        except Exception as e:
-            messagebox.showerror(title='Error',
-                                 message='Problem saving record',
-                                 detail=str(e)
-            )
-        else:           
-            self.records_saved += 1
-            self.status.set(" *****{} record(s) saved in this session*****".format(self.records_saved))
+            data = self.recordform.get()
+            rownum = self.recordform.current_record
+            try:
+                self.data_model.save_record(data)
+            
+            except Exception as e:
+                messagebox.showerror(title='Error',
+                                     message='Problem saving record',
+                                     detail=str(e)
+                )
+            else:           
+                self.records_saved += 1
+                self.status.set(" *****{} record(s) saved in this session*****".format(self.records_saved))
 
-        key = (data['Case Number'], data['Date of Registration'])
-        if self.data_model.last_write == 'update':
-            self.updated_rows.append(key)
-        else:
-            self.inserted_rows.append(key)
-        self.populate_recordlist()
-        if self.data_model.last_write == 'insert':
-            self.recordform.reset()
+            key = (data['Case Number'], data['Date of Registration'])
+            if self.data_model.last_write == 'update':
+                self.updated_rows.append(key)
+            else:
+                self.inserted_rows.append(key)
+            self.populate_recordlist()
+            if self.data_model.last_write == 'insert':
+                self.recordform.reset()
 
+        elif form == 'incidence':
+
+            errors = self.incidence_form.get_errors()
+            if errors:
+                message = "Cannot Save Record"
+                detail = "The following fields have errors: \n * {}".format('\n * '.join(errors.keys()))
+                
+                messagebox.showerror(title='Error', message=message, detail=detail)
+                    
+                return False
+
+            data = self.incidence_form.get()
+            rownum = self.incidence_form.current_record
+            try:
+                self.data_model.save_i_record(data)
+            
+            except Exception as e:
+                messagebox.showerror(title='Error',
+                                     message='Problem saving record',
+                                     detail=str(e)
+                )
+            else:           
+                self.records_on_if_saved += 1
+                self.ifstatus.set(" *****{} record(s) saved in this session*****".format(self.records_on_if_saved))
+
+            key = (data['CaseID'], data['Registration Date'])
+            if self.data_model.last_write == 'update':
+                self.updated_rows.append(key)
+            else:
+                self.inserted_rows.append(key)
+            self.populate_incidencelist()
+            if self.data_model.last_write == 'insert':
+                self.incidence_form.reset()
 
     def save_in_csv(self, event=None):
         errors = self.recordform.get_errors()
@@ -230,13 +317,17 @@ class Application(tk.Tk):
             )
         else:
             self.recordlist.populate(rows)
-    '''
-    def new_record(self, rowkey=None, event=None):
-        if rowkey is None:
-            record = None
-        else:rowkey = rowkey
-        self.recordform.load_record(rowkey)
-    '''
+
+    def populate_incidencelist(self):
+        try:
+            rows = self.data_model.get_incidence_records()
+        except Exception as e:
+            messagebox.showerror(title='Error',
+                                 message='Problem reading file',
+                                 detail=str(e)
+            )
+        else:
+            self.incidencelist.populate(rows)
 
     def open_record(self, rowkey=None):
         if rowkey is None:
@@ -252,7 +343,23 @@ class Application(tk.Tk):
                 )
                 return
         self.recordform.load_record(rowkey, record)
-        self.recordform.tkraise()
+        self.recordform.focus()
+
+    def open_irecord(self, rowkey=None):
+        if rowkey is None:
+            record = None
+        else:
+            rowkey = rowkey
+            try:
+                record = self.data_model.get_irecord(*rowkey)
+            except Exception as e:
+                messagebox.showerror(title='Error',
+                                     message='Problem reading file',
+                                     detail=str(e)
+                )
+                return
+        self.incidence_form.load_record(rowkey, record)
+        self.incidence_form.focus()
 
     def set_font(self, *args):
         font_size = self.settings['font size'].get()
@@ -306,12 +413,41 @@ class Application(tk.Tk):
                                  "* Field(s) does not exist\n"
                                  )
                 
-                        messagebox.showerror(title='Error', message=message, detail=detail)
+                        messagebox.showerror(title='Search Error', message=message, detail=detail)
                     else:
                         title = 'Search Result for "{}" by {}'.format(search_inp, category)
-                        searchResult=v.SearchResult(self, results, title)
-                        #searchResult.searchview_populate(results)
+                        searchResult = v.SearchResult(self, results, title)
                         
+    def violent_list(self):
+        try:
+            results = self.data_model.sort_violent()
+        except m.pg.OperationalError as e:
+            error = e
+            messagebox.showerror(title='Error', message='Database Error', detail=error)
+        else:
+            if results == {}:
+                message = "No Record Here"
+                detail = "Record of violent inmates seems to be empty"
+        
+                messagebox.showinfo(title='Violent Inmates', message=message, detail=detail)
+            else:
+                title = 'Violent Inmates'
+                violent_inmates_list = v.ViolentList(self, self.callbacks, results, title)
 
+    def open_vlist(self, rowkey=None):
+        if rowkey is None:
+            record = None
+        else:
+            rowkey = rowkey
+            try:
+                record = self.data_model.get_violent_data(*rowkey)
+            except Exception as e:
+                messagebox.showerror(title='Error',
+                                     message='Problem reading file',
+                                     detail=str(e)
+                )
+                return
+        title = 'Data of'# "{}" by {}'.format(search_inp, category)
+        violent_data = v.ViolentData(self, record, title)
                 
                 

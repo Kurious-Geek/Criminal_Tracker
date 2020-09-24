@@ -5,23 +5,21 @@ import json
 import psycopg2 as pg
 from psycopg2.extras import DictCursor
 from tkinter import messagebox
-from psycopg2 import sql as SQL
 
 class CSVModel:
 
     fields = {
         'First Name': {'req': True, 'type':FT.string, 'width':70},
         'Last Name': {'req': True, 'type':FT.string, 'width':70},
-        'Aliases': {'req': True, 'type':FT.string, 'width':70},
+        'Aliases': {'req': True, 'type':FT.string, 'width':80},
         'Birth Date': {'req': True, 'type':FT.iso_date_string},
         'Age': {'req': True, 'type':FT.integer},
-        'Male': {'req': True, 'type':FT.boolean},
-        'Female': {'req': True, 'type':FT.boolean},
+        'Gender': {'req': True, 'type':FT.string_list, 'values':['   --select--', 'Male', 'Female', 'Other']},
         'Height': {'req': True, 'type':FT.string, 'width':10},
         'Weight': {'req': True, 'type':FT.integer, 'width':10},
         'Eye Color': {'req': True, 'type':FT.string, 'width':12},
         'Hair Color': {'req': True, 'type':FT.string, 'width':12},
-        'Body Build': {'req': True, 'type':FT.string_list,
+        'Body Build': {'req': True, 'type':FT.string_list, 'width':12,
                        'values': ['   --select--', 'Ectomorph', 'Endomorph', 'Mesomorph']},
         'Mutation': {'req': True, 'type':FT.long_string, 'width':25, 'height':3},
         'Scars and Marks': {'req': True, 'type':FT.long_string, 'width':25, 'height':3},
@@ -40,9 +38,25 @@ class CSVModel:
         'Class of Crime': {'req': True, 'type':FT.string_list,
                        'values': ['   -- select--', 'Felony', 'Misdemeanors', 'Felony-Misdemeanors', 'Infractions']},
         'Ex-Convict': {'req': True, 'type':FT.boolean},
+        'Violent': {'req': True, 'type':FT.boolean},
         'Crime': {'req': True, 'type':FT.long_string, 'width':25, 'height':5},
         'Known Gang': {'req': True, 'type':FT.long_string, 'width':25, 'height':5},
     }
+
+    fields1 = {
+        'CaseID': {'req': True, 'type':FT.integer},
+        'Registration Date': {'req': True, 'type':FT.iso_date_string},
+        'Full Name': {'req': True, 'type':FT.string, 'width':50},
+        'Contact': {'req': True, 'type':FT.string, 'width':50},
+        'Officer in Charge': {'req': True, 'type':FT.string, 'width':70},
+        'District': {'req': True, 'type':FT.string, 'width':80},
+        'Statement': {'req': True, 'type':FT.long_string, 'width':70, 'height':28},
+        'Type of Incidence': {'req': True, 'type':FT.string, 'width':50},
+        'Evidence': {'req': True, 'type':FT.long_string, 'width':38, 'height':5},
+        'Witness': {'req': True, 'type':FT.long_string, 'width':38, 'height':5},
+        'Other Info': {'req': True, 'type':FT.long_string, 'width':38, 'height':5},
+
+    }    
 
 
     def __init__(self, filename):
@@ -134,16 +148,15 @@ class SQLModel:
     fields = {
         'First Name': {'req': True, 'type':FT.string, 'width':35},
         'Last Name': {'req': True, 'type':FT.string, 'width':35},
-        'Aliases': {'req': True, 'type':FT.string, 'width':70},
+        'Aliases': {'req': True, 'type':FT.string, 'width':73},
         'Birth Date': {'req': True, 'type':FT.iso_date_string},
         'Age': {'req': True, 'type':FT.integer},
-        'Male': {'req': True, 'type':FT.boolean},
-        'Female': {'req': True, 'type':FT.boolean},
+        'Gender': {'req': True, 'type':FT.string_list, 'values': []},
         'Height': {'req': True, 'type':FT.string, 'width':10},
         'Weight': {'req': True, 'type':FT.integer, 'width':10},
         'Eye Color': {'req': True, 'type':FT.string, 'width':12},
         'Hair Color': {'req': True, 'type':FT.string, 'width':12},
-        'Body Build': {'req': True, 'type':FT.string_list, 'values': []},
+        'Body Build': {'req': True, 'type':FT.string_list, 'width':12, 'values': []},
         'Mutation': {'req': True, 'type':FT.long_string, 'width':25, 'height':3},
         'Scars and Marks': {'req': True, 'type':FT.long_string, 'width':25, 'height':3},
         'Nationality': {'req': True, 'type':FT.string},
@@ -159,8 +172,24 @@ class SQLModel:
         'Division': {'req': True, 'type':FT.string},
         'Class of Crime': {'req': True, 'type':FT.string_list, 'values': []},
         'Ex-Convict': {'req': True, 'type':FT.boolean},
+        'Violent': {'req': True, 'type':FT.boolean},
         'Crime': {'req': True, 'type':FT.long_string, 'width':25, 'height':5},
         'Known Gang': {'req': True, 'type':FT.long_string, 'width':25, 'height':5},
+    }
+
+    fields1 = {
+        'CaseID': {'req': True, 'type':FT.integer},
+        'Registration Date': {'req': True, 'type':FT.iso_date_string},
+        'Full Name': {'req': True, 'type':FT.string, 'width':50},
+        'Contact': {'req': True, 'type':FT.string, 'width':50},
+        'Officer in Charge': {'req': True, 'type':FT.string, 'width':70},
+        'District': {'req': True, 'type':FT.string, 'width':80},
+        'Statement': {'req': True, 'type':FT.long_string, 'width':70, 'height':28},
+        'Type of Incidence': {'req': True, 'type':FT.string, 'width':50},
+        'Evidence': {'req': True, 'type':FT.long_string, 'width':38, 'height':5},
+        'Witness': {'req': True, 'type':FT.long_string, 'width':38, 'height':5},
+        'Other Info': {'req': True, 'type':FT.long_string, 'width':38, 'height':5},
+
     }
 
     def __init__(self, host, database, user, password):
@@ -170,10 +199,12 @@ class SQLModel:
         body_build = self.query("SELECT body_builds FROM bb_combo ORDER BY body_builds")
         state = self.query("SELECT states FROM states_combo ORDER BY states")
         class_of_crime = self.query("SELECT class_of_crimes FROM coc_combo ORDER BY class_of_crimes")
+        gender = self.query("SELECT gender FROM gender_combo ORDER BY gender")
         self.fields["Body Build"]["values"] = [x['body_builds'] for x in body_build]
         self.fields["State"]["values"] = [x['states'] for x in state]
         self.fields["Class of Crime"]["values"] = [x['class_of_crimes'] for x in class_of_crime]
-        
+        self.fields["Gender"]["values"] = [x['gender'] for x in gender]
+         
     def query(self, query, parameters=None):
         cursor = self.connection.cursor()
         try:
@@ -187,15 +218,32 @@ class SQLModel:
                 return cursor.fetchall()
 
     def search_query(self, category, search_inp):
-        query = ('SELECT * FROM data_record_view WHERE "{}" = %(search_inp)s').format(category)
+        query = ('SELECT * FROM data_record_view WHERE "{}" = \'{}\'').format(category, search_inp)
         result = self.query(query, {'search_inp':search_inp})
         return result if result else {}
-        
+    
+    def sort_violent(self):
+        query = ('SELECT "Case Number", "First Name", "Last Name" FROM data_record_view WHERE "Violent" = True '
+                 'ORDER BY "Case Number"') 
+        result = self.query(query)  
+        return result if result else {}
+
+    def get_violent_data(self, case_number, first_name):
+        query = ('SELECT * FROM data_record_view '
+                 'WHERE "Case Number" = %(case_number)s AND "First Name" = %(first_name)s')
+        result = self.query(query, {'case_number': case_number, 'first_name':first_name})
+        return result if result else {} 
 
     def get_all_records(self, all_dates=False):
         query = ('SELECT * FROM data_record_view '
                  'WHERE NOT %(all_dates)s OR "Date of Registration" = CURRENT_DATE '
                  'ORDER BY "Case Number", "Date of Registration"')
+        return self.query(query, {'all_dates':all_dates})
+
+    def get_incidence_records(self, all_dates=False):
+        query = ('SELECT * FROM incidence_view '
+                 'WHERE NOT %(all_dates)s OR "Registration Date" = CURRENT_DATE '
+                 'ORDER BY "CaseID", "Registration Date"')
         return self.query(query, {'all_dates':all_dates})
 
     def get_record(self, case_number, date_of_registration):
@@ -204,6 +252,14 @@ class SQLModel:
                  'AND "Date of Registration" = %(date_of_registration)s')
         result = self.query(
             query, {'case_number': case_number, 'date_of_registration': date_of_registration})
+        return result[0] if result else {}
+
+    def get_irecord(self, case_id, registration_date):
+        query = ('SELECT * FROM incidence_view '
+                 'WHERE "CaseID" = %(case_id)s '
+                 'AND "Registration Date" = %(registration_date)s')
+        result = self.query(
+            query, {'case_id': case_id, 'registration_date': registration_date})
         return result[0] if result else {}
 
     def get_cases(self, case_number, date_of_registration):
@@ -226,8 +282,8 @@ class SQLModel:
     pi_update_query = (
         'UPDATE personal_information SET cases_number = %(Case Number)s, '
         'first_name = %(First Name)s, last_name = %(Last Name)s, aliases = %(Aliases)s, '
-        'birth_date = %(Birth Date)s, age = %(Age)s, male = %(Male)s, '
-        'female = %(Female)s, height = %(Height)s, weight = %(Weight)s, '
+        'birth_date = %(Birth Date)s, age = %(Age)s, gender = %(Gender)s, '
+        'height = %(Height)s, weight = %(Weight)s, '
         'eye_color = %(Eye Color)s, hair_color = %(Hair Color)s, '
         'body_build = %(Body Build)s, mutation = %(Mutation)s, '
         'scars_and_marks = %(Scars and Marks)s, nationality = %(Nationality)s, '
@@ -236,7 +292,7 @@ class SQLModel:
 
     pi_insert_query = (
         'INSERT INTO personal_information VALUES (%(Case Number)s, %(First Name)s, '
-        '%(Last Name)s, %(Aliases)s, %(Birth Date)s, %(Age)s, %(Male)s, %(Female)s, '
+        '%(Last Name)s, %(Aliases)s, %(Birth Date)s, %(Age)s, %(Gender)s, '
         '%(Height)s, %(Weight)s, %(Eye Color)s, %(Hair Color)s, '
         '%(Body Build)s, %(Mutation)s, %(Scars and Marks)s, '
         '%(Nationality)s, %(State)s, %(LGA)s, '
@@ -249,7 +305,7 @@ class SQLModel:
         'date_of_registration = %(Date of Registration)s, date_of_arrest = %(Date of Arrest)s, '
         'arresting_officer = %(Arresting Officer)s, place_of_arrest = %(Place of Arrest)s, '
         'area = %(Area)s, division = %(Division)s, class_of_crime = %(Class of Crime)s, '
-        'crime = %(Crime)s, ex_convict = %(Ex-Convict)s, known_gang = %(Known Gang)s'
+        'crime = %(Crime)s, ex_convict = %(Ex-Convict)s, violent = %(Violent)s, known_gang = %(Known Gang)s'
         )
 
     oi_insert_query = (
@@ -257,7 +313,23 @@ class SQLModel:
         '%(Date of Registration)s, %(Date of Arrest)s, '
         '%(Arresting Officer)s, %(Place of Arrest)s, '
         '%(Area)s, %(Division)s, %(Class of Crime)s, '
-        '%(Crime)s, %(Ex-Convict)s, %(Known Gang)s)'
+        '%(Crime)s, %(Ex-Convict)s, %(Violent)s, %(Known Gang)s)'
+        )
+
+    ii_update_query = (
+        'UPDATE incidence_information SET case_id = %(CaseID)s, '
+        'registration_date = %(Registration Date)s, fullname = %(Full Name)s, contact = %(Contact)s, '
+        'officer_in_charge = %(Officer in Charge)s, district = %(District)s, statement = %(Statement)s, '
+        'type_of_incidence = %(Type of Incidence)s, evidence = %(Evidence)s, witness = %(Witness)s, '
+        'other_info = %(Other Info)s'
+        )
+
+    ii_insert_query = (
+        'INSERT INTO incidence_information VALUES (%(CaseID)s, '
+        '%(Registration Date)s, %(Full Name)s, %(Contact)s, '
+        '%(Officer in Charge)s, %(District)s, %(Statement)s, '
+        '%(Type of Incidence)s, %(Evidence)s, %(Witness)s, '
+        '%(Other Info)s)'
         )
 
     def save_record(self, record):
@@ -279,20 +351,24 @@ class SQLModel:
         self.query(c_query, record)    
         self.query(pi_query, record)
         self.query(oi_query, record)
+
+    def save_i_record(self, record):
+        case_id = record['CaseID']
+        registration_date = record['Registration Date']  
+                 
+        if self.get_irecord(case_id, registration_date):
+            i_query = self.ii_update_query
+            self.last_write = 'update'
+                 
+        else:
+            i_query = self.ii_insert_query
+            self.last_write = 'insert'
+            
+        self.query(i_query, record)    
+
+    
         
 
                  
 
     
-                
-            
-        
-
-        
-
-
-            
-            
-
-
-        
