@@ -1,5 +1,5 @@
 CRIMINAL TRACKER v1.0
 
-Author: Halima Abati
-Author's Email: alima.abati@hotmail.com
+Author: Kurious Geek
+Author's Email: knwaode@gmail.com
 Powered by: Kurious Geek
