@@ -146,6 +146,7 @@ class SettingsModel:
 
 class SQLModel:
     fields = {
+        'Case Number': {'req': True, 'type':FT.integer},
         'First Name': {'req': True, 'type':FT.string, 'width':35},
         'Last Name': {'req': True, 'type':FT.string, 'width':35},
         'Aliases': {'req': True, 'type':FT.string, 'width':73},
@@ -164,16 +165,15 @@ class SQLModel:
         'LGA': {'req': True, 'type':FT.string},
         'Residence Address': {'req': True, 'type':FT.string, 'width':70},
         'Date of Registration': {'req': True, 'type':FT.iso_date_string},
-        'Date of Arrest': {'req': True, 'type':FT.iso_date_string},
-        'Case Number': {'req': True, 'type':FT.integer},
+        'Date of Arrest': {'req': True, 'type':FT.iso_date_string},    
         'Arresting Officer': {'req': True, 'type':FT.string, 'width':70},
         'Place of Arrest': {'req': True, 'type':FT.string, 'width':70},
         'Area': {'req': True, 'type':FT.string},
         'Division': {'req': True, 'type':FT.string},
         'Class of Crime': {'req': True, 'type':FT.string_list, 'values': []},
-        'Ex-Convict': {'req': True, 'type':FT.boolean},
-        'Violent': {'req': True, 'type':FT.boolean},
         'Crime': {'req': True, 'type':FT.long_string, 'width':25, 'height':5},
+        'Ex-Convict': {'req': True, 'type':FT.boolean},
+        'Violent': {'req': True, 'type':FT.boolean}, 
         'Known Gang': {'req': True, 'type':FT.long_string, 'width':25, 'height':5},
     }
 

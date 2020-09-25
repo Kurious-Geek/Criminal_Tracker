@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from datetime import datetime
 from . import widgets as w
+from . import models as m
 from .images import ctracker_32
 from .images import ctracker_64
 from tkinter.simpledialog import Dialog
@@ -658,14 +659,7 @@ class SearchResult(tk.Toplevel):
         self.searchview.grid(row=0, column=0, sticky='NSEW')
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
-        '''
-        for index, x in enumerate(self.results):
-            num=0
-            for y in x:
-                label = tk.Label(frame, text=y)
-                label.grid(column=num, row=index)
-                num +=1
-        '''
+
         for row in self.searchview.get_children():
             self.searchview.delete(row)
         valuekeys = list(self.column_defs.keys())[1:]
@@ -1119,6 +1113,8 @@ class ViolentData(tk.Toplevel):
         if title:
             self.title(title)
 
+        self.resizable(width=False, height=False)
+
         self.parent = parent
         self.result = None
         self.results = results
@@ -1143,16 +1139,30 @@ class ViolentData(tk.Toplevel):
 
 
     def body(self, master):
-        for index, x in enumerate(self.results):
+
+        self.taskbar_icon = tk.PhotoImage(file=ctracker_32)
+        self.tk.call('wm', 'iconphoto', self._w, self.taskbar_icon)
+
+        value_frame = tk.Frame(self)
+        value_frame.grid(row=0, column=1, padx=10)
+        for index, data in enumerate(self.results):
             num=0
-            for y in x:
-                label = tk.Label(self, text=y)
-                label.grid(column=num, row=index)
+            for field in data:
+                label = tk.Label(value_frame, text=str(field).title().replace('\n', ''))
+                label.grid(column=index, row=num, sticky=tk.W)
                 num +=1
 
+        key_frame = tk.Frame(self)
+        key_frame.grid(row=0, column=0, padx=10) 
+        key = list(m.SQLModel.fields.keys())
+        for index, x in enumerate(key):
+            num=0
+            label = tk.Label(key_frame, text=str(x) + ' :')
+            label.grid(column=num, row=index, sticky=tk.W)
+            num +=1
+            
 
     def cancel(self, event=None):
 
-        # put focus back to the parent window
         self.parent.focus_set()
         self.destroy()

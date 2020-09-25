@@ -273,7 +273,6 @@ class Application(tk.Tk):
             '''
 
 
-
     def close(self, event=None):
         self.quit()
         self.destroy()
@@ -447,7 +446,7 @@ class Application(tk.Tk):
                                      detail=str(e)
                 )
                 return
-        title = 'Data of'# "{}" by {}'.format(search_inp, category)
+        title = 'Data of Selected Inmate'
         violent_data = v.ViolentData(self, record, title)
                 
                 
