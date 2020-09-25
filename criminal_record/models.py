@@ -228,6 +228,12 @@ class SQLModel:
         result = self.query(query)  
         return result if result else {}
 
+    def sort_crime_areas(self):
+        query = ('SELECT "Case Number", "Place of Arrest" FROM data_record_view '
+                 'ORDER BY "Case Number"') 
+        result = self.query(query)  
+        return result if result else {}
+
     def get_violent_data(self, case_number, first_name):
         query = ('SELECT * FROM data_record_view '
                  'WHERE "Case Number" = %(case_number)s AND "First Name" = %(first_name)s')

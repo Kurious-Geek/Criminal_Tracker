@@ -56,6 +56,7 @@ class MainMenu(tk.Menu):
         view_menu.add_command(label='Arrest Record', command=callbacks['show_recordlist'])
         view_menu.add_command(label='Incidence Record', command=callbacks['show_incidence_list'])
         view_menu.add_command(label='Volent Inmates', command=callbacks['violent_list'])
+        view_menu.add_command(label='Crime Occuring Areas', command=callbacks['crime_area'])
 
         self.add_cascade(label='View', menu=view_menu)
 
@@ -1144,7 +1145,7 @@ class ViolentData(tk.Toplevel):
         self.tk.call('wm', 'iconphoto', self._w, self.taskbar_icon)
 
         value_frame = tk.Frame(self)
-        value_frame.grid(row=0, column=1, padx=10)
+        value_frame.grid(row=0, column=1, padx=20, pady=20)
         for index, data in enumerate(self.results):
             num=0
             for field in data:
@@ -1153,7 +1154,7 @@ class ViolentData(tk.Toplevel):
                 num +=1
 
         key_frame = tk.Frame(self)
-        key_frame.grid(row=0, column=0, padx=10) 
+        key_frame.grid(row=0, column=0, padx=20, pady=20) 
         key = list(m.SQLModel.fields.keys())
         for index, x in enumerate(key):
             num=0
@@ -1166,3 +1167,120 @@ class ViolentData(tk.Toplevel):
 
         self.parent.focus_set()
         self.destroy()
+
+
+class CrimeArea(tk.Toplevel):
+
+    column_defs = {
+        '#0': {'label':'Row', 'anchor':tk.W},
+        'Case Number': {'label':'Case Number', 'width':90},
+        'Place of Arrest':{'label':'Areas Crime Occured', 'width':250, 'anchor':tk.W, 'stretch':True},
+        }
+
+    default_width = 100
+    default_minwidth = 10
+    default_anchor = tk.CENTER
+
+    def __init__(self, parent, callbacks, results, title=None):
+        tk.Toplevel.__init__(self, parent)
+        self.transient(parent)
+        self.resizable(width=False, height=True)
+        self.title(title)
+
+        self.parent = parent
+        self.callbacks = callbacks
+        self.result = None
+        self.results= results
+
+        self.initial_focus = self.body()
+
+        self.buttonbox()
+
+        self.grab_set()
+
+        if not self.initial_focus:
+            self.initial_focus = self
+
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
+
+        self.geometry("+%d+%d" % (parent.winfo_rootx()+50,
+                                  parent.winfo_rooty()+50))
+
+        self.initial_focus.focus_set()
+
+        self.wait_window(self)
+
+    def body(self):
+
+        self.taskbar_icon = tk.PhotoImage(file=ctracker_32)
+        self.tk.call('wm', 'iconphoto', self._w, self.taskbar_icon)
+
+        frame = tk.Frame(self)
+        frame.grid(row=0, column=0)
+
+        self.crime_area_view = ttk.Treeview(frame, height=25, columns=list(self.column_defs.keys())[1:], selectmode='browse')
+        self.yscrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.crime_area_view.yview)
+        self.yscrollbar.grid(row=0, column=1, sticky='NSE')
+        
+        self.crime_area_view.config(show = 'headings')
+        self.crime_area_view.configure(yscrollcommand=self.yscrollbar.set)
+
+        for name, definition in self.column_defs.items():
+            label = definition.get('label', '')
+            anchor = definition.get('anchor', self.default_anchor)
+            minwidth = definition.get('minwidth', self.default_minwidth)
+            width = definition.get('width', self.default_width)
+            stretch = definition.get('stretch', False)
+
+            self.crime_area_view.heading(name, text=label, anchor=self.default_anchor)
+            self.crime_area_view.column(name, anchor=anchor, minwidth=minwidth, width=width, stretch=stretch)
+
+        self.crime_area_view.grid(row=0, column=0, sticky='NSEW')
+        self.rowconfigure(0, weight=1)
+
+        for row in self.crime_area_view.get_children():
+            self.crime_area_view.delete(row)
+        valuekeys = list(self.column_defs.keys())[1:]
+        for rowdata in self.results:
+            rowkey = (str(rowdata['Case Number']), str(rowdata['Place of Arrest']))
+            values = [rowdata[key] for key in valuekeys]
+
+            stringkey = '{}|{}'.format(*rowkey)
+            self.crime_area_view.insert('', 'end', iid=stringkey, text=stringkey,
+                                 values=values)
+
+    def buttonbox(self):
+        box = tk.Frame(self)
+
+        csvbtn = tk.Button(box, text='Extract to CSV', command=self.ok)
+        csvbtn.pack(side=tk.LEFT, pady=5, padx=5)
+
+        canbtn = tk.Button(box, text=' Close ', command=self.cancel)
+        canbtn.pack(side=tk.LEFT, pady=5, padx=5)
+
+        box.grid()
+
+    def ok(self, event=None):
+
+        if not self.validate():
+            self.initial_focus.focus_set()
+            return
+
+        self.withdraw()
+        self.update_idletasks()
+
+        self.apply()
+        #self.cancel()
+
+    def cancel(self, event=None):
+
+        self.parent.focus_set()
+        self.destroy()
+
+    def validate(self):
+
+        return 1 
+
+    def apply(self):
+
+        pass 

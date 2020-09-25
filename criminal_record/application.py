@@ -29,7 +29,6 @@ class Application(tk.Tk):
         self.inserted_rows = []
         self.updated_rows = []
 
-        #self.filename = tk.StringVar(value=default_filename)
                                     
         self.settings_model = m.SettingsModel()
         self.load_settings()
@@ -57,7 +56,8 @@ class Application(tk.Tk):
                           'search': self.search_options,
                           'show_incidence_list':self.show_incidence_list,
                           'violent_list':self.violent_list,
-                          'on_open_vlist':self.open_vlist
+                          'on_open_vlist':self.open_vlist,
+                          'crime_area':self.crime_areas
                           
         }  
 
@@ -426,7 +426,8 @@ class Application(tk.Tk):
         else:
             if results == {}:
                 message = "No Record Here"
-                detail = "Record of violent inmates seems to be empty"
+                detail = ("Record of violent inmates seems to be empty \n"
+                          "must have something to do with the database")
         
                 messagebox.showinfo(title='Violent Inmates', message=message, detail=detail)
             else:
@@ -448,5 +449,22 @@ class Application(tk.Tk):
                 return
         title = 'Data of Selected Inmate'
         violent_data = v.ViolentData(self, record, title)
-                
+
+
+    def crime_areas(self):
+        try:
+            results = self.data_model.sort_crime_areas()
+        except m.pg.OperationalError as e:
+            error = e
+            messagebox.showerror(title='Error', message='Database Error', detail=error)
+        else:
+            if results == {}:
+                message = "No Record Here"
+                detail = ("Record of crime occuring areas seems to be empty \n"
+                          "must have something to do with the database")
+        
+                messagebox.showinfo(title='Crime Occuring Areas', message=message, detail=detail)
+            else:
+                title = 'Crime Occuring Areas'
+                violent_inmates_list = v.CrimeArea(self, self.callbacks, results, title)   
                 
