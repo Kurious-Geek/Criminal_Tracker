@@ -10,33 +10,47 @@ this app works on POSTGRESQL database,  for now the databse configurations are d
 
 ***before running the app for the first time do the database configuration***
 
-~Database configuration:
+~ Database configuration:
 	* download and install postgres software
 	* create a database on the software and name it  "criminal_record" 
-	  Alternative: (if you are a developer and you already have a database you are working with, locate the 'model.py' file in the directory of installation of this app, locate the settings class and edit it according to your database configuration)
-	* in the installation directory locate the directory "sql/create_db.sql" and run the script on your databse query tool
+	  Alternative: (if you are a developer and you already have a database you are working with, locate the 'models.py' file in the directory of installation of this app, locate the settings model class and edit it according to your database configuration)
+	* in the installation directory locate the directory "sql/create_db.sql" and 
+	  run the script on your databse query tool
 	* your application is good to go 
 
-~Menu bar:
-Menu bar contains regular menu bar options
+~ Menu bar:
+	Menu bar contains regular menu bar options
 	* File: 
-		New Record: this resets the content of the home tab to enter a new record
-		Save: this saves the records to the database
+		New Arrest Form: this resets the widgets of the arrest record tab to start a new record
+		New Incidence Form: this resets the widgets of the incidence record tab to start a new record
+		Save Arrest Form: this saves the data of the arrest form to the database
+		Save Incidence Form: this saves the data of the incidence form to the database
 		Save in CSV: this saves the records to a csv file
 		Exit: Exit the app 
+
 	* Options:
 		Autofill Date: when ticked it auto fills the "date of registration" column with the current date
 		Font size: for changing the size of the font for the app for better visualization 
-		themes: for changing themes of the app it only contains windows native themes and the changes only takes effect after restart
+		Themes: for changing themes of the app it only contains windows native themes and the changes only takes effect after restart
+
 	* View:
-		Criminal list: this creates a tab that shows all records in the database on some selected columns
-		New Record: this resets the home tab for a new record entry
+		Arrest Record: this creates a tab that shows all records saved from arrest form in the database on some selected columns.
+		Incidence Record: this creates a tab that shows complete records saved from incidence form in the database.
+		Violent Inmates: this creates a window that shows the names and case numbers of violent inmates. when a record is selected by double clicking it opens the complete record of the selected field.
+		Crime Occuring Area: this creates a window that shows arrest areas and their corresponding case numbers.
+
 	* Search: 
-		Search Options: this searchs for keywords by selected categories these categories are columns on the "view table" in the database 
+		Search Arrest Record: this searches for keywords by selected categories these categories are columns on the "data_record_view" which is the arrest record in the database.
+		Search Incidence Record: this searches for keywords by selected categories these categories are columns on the "incidence_view" which is the incidence record in the database.
 	
-~Error Handling:
-	* App window cannot be resized
+~ Error Handling:
+	* App window can be resized
 	* Cannot Save Record: this is due to the fact that one or more fields are empty or are field with wrong syntax
 	* problem saving record: this is due to database error or as stated in the error details
-	* 
+	* record not found: this is due to error in search parameters orempty search result
+
+~ Saving data:
+	* Data can be saved in csv format manually.
+	* Data is saved to database by default.
+	* Windows with Extract to csv buttons can extract their records to a csv file
 	 
