@@ -1,4 +1,6 @@
 import tkinter as tk
+import os
+import csv
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
@@ -53,11 +55,13 @@ class Application(tk.Tk):
                           'on_open_irecord':self.open_irecord,
                           'new_record':self.open_record,
                           'new_irecord':self.open_irecord,
-                          'search': self.search_options,
+                          'searchAR': lambda:self.search_options('arrest'),
+                          'searchIL': lambda:self.search_options('incidence'),
                           'show_incidence_list':self.show_incidence_list,
                           'violent_list':self.violent_list,
                           'on_open_vlist':self.open_vlist,
-                          'crime_area':self.crime_areas
+                          'crime_area':self.crime_areas,
+                          #'extract_to_csv':self.extract_to_csv
                           
         }  
 
@@ -144,10 +148,12 @@ class Application(tk.Tk):
 
         self.tab4 = tk.Frame(self.tabs)
         self.incidencelist = v.IncidenceList(self.tab4, self.callbacks, self.inserted_rows, self.updated_rows)
+        self.tab4.rowconfigure(0, weight=1)
+        self.tab4.columnconfigure(0, weight=1)
 
         self.records_saved = 0
         self.records_saved_to_csv = 0
-        self.records_on_if_saved = 0
+        self.records_on_incidence_form_saved = 0
 
     def _bound_to_mousewheel(self, event):
         self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
@@ -230,7 +236,7 @@ class Application(tk.Tk):
                 )
             else:           
                 self.records_on_if_saved += 1
-                self.ifstatus.set(" *****{} record(s) saved in this session*****".format(self.records_on_if_saved))
+                self.ifstatus.set(" *****{} record(s) saved in this session*****".format(self.records_on_incidence_form_saved))
 
             key = (data['CaseID'], data['Registration Date'])
             if self.data_model.last_write == 'update':
@@ -262,16 +268,6 @@ class Application(tk.Tk):
         self.records_saved_to_csv += 1
         self.status.set("*****{} record(s) saved to csv in this session*****".format(self.records_saved_to_csv))
         self.recordform.reset()
-        '''filename = filedialog.asksaveasfilename(
-            title='Select the file for saving records',
-            defaultextension='csv',
-            filetypes=[('Comma-Separated Values (csv)', '*.csv *.CSV')]
-        )
-        if filename:
-            self.filename.set(filename)
-            self.data_model = m.CSVModel(filename=self.filename.get())
-            '''
-
 
     def close(self, event=None):
         self.quit()
@@ -387,36 +383,111 @@ class Application(tk.Tk):
                 else:
                     break
 
-    def search_options(self):
-        error = ''
-        db_name = self.settings['db_name'].get()
-        title = 'Search {} database'.format(db_name)
+    def search_options(self, type):
+        self.type = type
 
-        search_result = v.SearchDialog(self, title, error)
-        if not search_result.result:
-            error = 'Something went wrong'
-        else:
-            category, search_inp = search_result.result
-            if category == "   --select--" and search_inp == '' or category == "   --select--" and search_inp == '{}'.format(search_inp) or category == '{}'.format(category) and search_inp == '':
-                messagebox.showerror(title='Input Error', message= 'Empty Field', detail='Select a value for Keyword and Category')
-            else: 
-                try:
-                    results = self.data_model.search_query(category, search_inp)
-                except m.pg.OperationalError as e:
-                    error = e
-                else:
-                    if results == {}:
-                        message = error if error else "Record not found"
-                        detail = ("One of the following might have been the issue\n\n"
-                                 "* Field(s) are case sensitive\n"
-                                 "* Field(s) does not exist\n"
-                                 )
-                
+        if self.type == 'arrest':
+
+            title = 'Search Arrest Record'
+            search_result = v.SearchDialog(self, title, self.type)
+
+            if not search_result.result:
+                error = 'Something went wrong'
+            else:
+                category, search_inp = search_result.result
+                if category == "   --select--" and search_inp == '' or category == "   --select--" and search_inp == '{}'.format(search_inp) or category == '{}'.format(category) and search_inp == '':
+                    messagebox.showerror(title='Input Error', message= 'Empty Field', detail='Select a value for Keyword and Category')
+                else: 
+                    try:
+                        results = self.data_model.searchAR_query(category, search_inp)
+                    except m.pg.OperationalError as e:
+                        error = e
+
+                        message = 'Database Error'
+                        detail = error
                         messagebox.showerror(title='Search Error', message=message, detail=detail)
                     else:
-                        title = 'Search Result for "{}" by {}'.format(search_inp, category)
-                        searchResult = v.SearchResult(self, results, title)
-                        
+                        if results == {}:
+                            message = "Record not found"
+                            detail = ("One of the following might have been the issue\n\n"
+                                     "* Field(s) are case sensitive\n"
+                                     "* Field(s) does not exist\n"
+                                     )
+                    
+                            messagebox.showerror(title='Search Error', message=message, detail=detail)
+                        else:
+                            title = 'Search Result for "{}" by {}'.format(search_inp, category)
+
+                            while True:
+
+                                searchResult = v.SearchResult(self, results, self.type, title)
+                                if not searchResult.result:
+                                    break
+                                else:
+                                    data = searchResult.result
+                                    datestring = datetime.today().strftime("%Y-%m-%d")
+                                    self.filename = "search_result_for_'{}'_by_'{}'_on_{}.csv".format(search_inp, category, datestring)
+                                    header = list(m.SQLModel.fields.keys())
+                                    newfile = not os.path.exists(self.filename)
+
+                                    with open(self.filename, 'a', newline='') as fh:
+                                        csvwriter = csv.DictWriter(fh, fieldnames=header)
+                                        if newfile:
+                                            csvwriter.writeheader()
+                                        writer = csv.writer(fh, dialect='excel')
+                                        writer.writerows(data)
+                                    break
+            
+        elif self.type == 'incidence':
+            title = 'Search Incidence Record'
+            search_result = v.SearchDialog(self, title, self.type)
+
+            if not search_result.result:
+                error = 'Something went wrong'
+            else:
+                category, search_inp = search_result.result
+                if category == "   --select--" and search_inp == '' or category == "   --select--" and search_inp == '{}'.format(search_inp) or category == '{}'.format(category) and search_inp == '':
+                    messagebox.showerror(title='Input Error', message= 'Empty Field', detail='Select a value for Keyword and Category')
+                else: 
+                    try:
+                        results = self.data_model.searchIR_query(category, search_inp)
+                    except m.pg.OperationalError as e:
+                        error = e
+
+                        message = 'Database'
+                        detail = error
+                        messagebox.showerror(title='Search Error', message=message, detail=detail)
+                    else:
+                        if results == {}:
+                            message = "Record not found"
+                            detail = ("One of the following might have been the issue\n\n"
+                                     "* Field(s) are case sensitive\n"
+                                     "* Field(s) does not exist\n"
+                                     )
+                    
+                            messagebox.showerror(title='Search Error', message=message, detail=detail)
+                        else:
+                            title = 'Search Result for "{}" by {}'.format(search_inp, category)
+                            
+                        while True:
+                            searchResult = v.SearchResult(self, results, self.type, title)
+                            if not searchResult.result:
+                                break
+                            else:
+                                data = searchResult.result
+                                datestring = datetime.today().strftime("%Y-%m-%d")
+                                self.filename = "search_result_for_'{}'_by_'{}'_on_{}.csv".format(search_inp, category, datestring)
+                                header = list(m.SQLModel.fields1.keys())
+                                newfile = not os.path.exists(self.filename)
+
+                                with open(self.filename, 'a', newline='') as fh:
+                                    csvwriter = csv.DictWriter(fh, fieldnames=header)
+                                    if newfile:
+                                        csvwriter.writeheader()
+                                    writer = csv.writer(fh, dialect='excel')
+                                    writer.writerows(data)
+                                break
+
     def violent_list(self):
         try:
             results = self.data_model.sort_violent()
@@ -432,7 +503,24 @@ class Application(tk.Tk):
                 messagebox.showinfo(title='Violent Inmates', message=message, detail=detail)
             else:
                 title = 'Violent Inmates'
-                violent_inmates_list = v.ViolentList(self, self.callbacks, results, title)
+                while True:
+                    violent_inmates_list = v.ViolentList(self, self.callbacks, results, title)
+                    if not violent_inmates_list.result:
+                        break
+                    else:
+                        data = violent_inmates_list.result
+                        datestring = datetime.today().strftime("%Y-%m-%d")
+                        self.filename = "violent_inmates_record_{}.csv".format(datestring)
+                        header = list(violent_inmates_list.column_defs.keys())[1:]
+                        newfile = not os.path.exists(self.filename)
+
+                        with open(self.filename, 'a', newline='') as fh:
+                            csvwriter = csv.DictWriter(fh, fieldnames=header)
+                            if newfile:
+                                csvwriter.writeheader()
+                            writer = csv.writer(fh, dialect='excel')
+                            writer.writerows(data)
+                        break
 
     def open_vlist(self, rowkey=None):
         if rowkey is None:
@@ -450,7 +538,6 @@ class Application(tk.Tk):
         title = 'Data of Selected Inmate'
         violent_data = v.ViolentData(self, record, title)
 
-
     def crime_areas(self):
         try:
             results = self.data_model.sort_crime_areas()
@@ -465,6 +552,25 @@ class Application(tk.Tk):
         
                 messagebox.showinfo(title='Crime Occuring Areas', message=message, detail=detail)
             else:
-                title = 'Crime Occuring Areas'
-                violent_inmates_list = v.CrimeArea(self, self.callbacks, results, title)   
+                title = 'Crime Occuring Areas'  
+                while True:
+                    crime_occuring_area = v.CrimeArea(self, self.callbacks, results, title)
+                    if not crime_occuring_area.result:
+                        break
+                    else:
+                        data = crime_occuring_area.result
+                        datestring = datetime.today().strftime("%Y-%m-%d")
+                        self.filename = "crime_occuring_areas_record_{}.csv".format(datestring)
+                        header = list(crime_occuring_area.column_defs.keys())[1:]
+                        newfile = not os.path.exists(self.filename)
+
+                        with open(self.filename, 'a', newline='') as fh:
+                            csvwriter = csv.DictWriter(fh, fieldnames=header)
+                            if newfile:
+                                csvwriter.writeheader()
+                            writer = csv.writer(fh, dialect='excel')
+                            writer.writerows(data)
+                        break 
+
+
                 

@@ -66,7 +66,7 @@ class CSVModel:
         if rownum is not None:
             records = self.get_all_records()
             records[rownum] = data
-            with open(self.filename, 'w') as fh:
+            with open(self.filename, 'w', newline='') as fh:
                 csvwriter = csv.DictWriter(fh, fieldnames=self.fields.keys())
                 csvwriter.writeheader()
                 csvwriter.writerows(records)
@@ -217,8 +217,13 @@ class SQLModel:
             if cursor.description is not None:
                 return cursor.fetchall()
 
-    def search_query(self, category, search_inp):
+    def searchAR_query(self, category, search_inp):
         query = ('SELECT * FROM data_record_view WHERE "{}" = \'{}\'').format(category, search_inp)
+        result = self.query(query, {'search_inp':search_inp})
+        return result if result else {}
+
+    def searchIR_query(self, category, search_inp):
+        query = ('SELECT * FROM incidence_view WHERE "{}" = \'{}\'').format(category, search_inp)
         result = self.query(query, {'search_inp':search_inp})
         return result if result else {}
     

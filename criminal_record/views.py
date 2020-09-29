@@ -18,9 +18,9 @@ class MainMenu(tk.Menu):
         file_menu.add_separator()
         file_menu.add_command(label="Save Arrest Form", command=callbacks['saveAF'])
         file_menu.add_command(label="Save Incidence Form", command=callbacks['saveIF'])
-        file_menu.add_command(label='Save in CSV                   Ctrl+Shift+S', command=callbacks['savein'])
+        file_menu.add_command(label='Save in CSV                    Ctrl+Shift+S', command=callbacks['savein'])
         file_menu.add_separator()
-        file_menu.add_command(label='Exit                                   Ctrl+Q', command=callbacks['quit'])
+        file_menu.add_command(label='Exit                                  Ctrl+Q', command=callbacks['quit'])
         self.add_cascade(label='File', menu=file_menu)
 
         edit_menu = tk.Menu(self, tearoff=False)
@@ -61,8 +61,8 @@ class MainMenu(tk.Menu):
         self.add_cascade(label='View', menu=view_menu)
 
         search_menu = tk.Menu(self, tearoff=False)
-        search_menu.add_command(label='Search Arrest Record', command=callbacks['search'])
-        search_menu.add_command(label='Search Incidence List', command=callbacks['search'])
+        search_menu.add_command(label='Search Arrest Record', command=callbacks['searchAR'])
+        search_menu.add_command(label='Search Incidence List', command=callbacks['searchIL'])
         self.add_cascade(label='Search', menu=search_menu)
         
         help_menu = tk.Menu(self, tearoff=False)
@@ -75,6 +75,8 @@ class MainMenu(tk.Menu):
         about_detail = ('For assistance please read the docs \nor contact the developer. '
                         '\n\n\n\t\tpowered by Kurious Geek')
 
+        messagebox.showinfo(title='About Criminal Tracker', message=about_message, detail=about_detail)
+
     def view_help(self):
         """ """
         pass
@@ -82,7 +84,7 @@ class MainMenu(tk.Menu):
     def on_theme_change(self, *args):
         message = 'Theme change requires restart'
         detail = ('Changing theme requires application restart\n'
-                  'Your work progrss might be lost\n'
+                  'Your work progress might be lost\n'
                   'Do you want to continue?')
         messagebox.showwarning(title='Warning', message=message, detail=detail)
 
@@ -502,10 +504,10 @@ class LoginDialog(Dialog):
 
 class SearchDialog(Dialog):
 
-    def __init__(self, parent, title, error=''):
+    def __init__(self, parent, title, type):
         self.category = tk.StringVar()
         self.search_inp = tk.StringVar()
-        self.error = tk.StringVar(value=error)
+        self.type = type
         super().__init__(parent, title)
         
     def body(self, parent):
@@ -523,8 +525,12 @@ class SearchDialog(Dialog):
         self.Category = tk.Label(frame, text='Category :')
         self.Category.grid(column=0, row=1, pady=10, padx=10)
 
-        self.option_search = ttk.Combobox(frame, textvariable=self.category,
-                                     value=["   --select--", "Case Number", "Date of Registration", "First Name", "Last Name", "Gender", "Age", "Arresting Officer", "Class of Crime"])
+        if self.type == 'arrest':
+            self.option_search = ttk.Combobox(frame, textvariable=self.category,
+                                         value=["   --select--", "Case Number", "Date of Registration", "First Name", "Last Name", "Gender", "Age", "Arresting Officer", "Class of Crime"])
+        elif self.type == 'incidence':
+            self.option_search = ttk.Combobox(frame, textvariable=self.category,
+                                         value=["   --select--", "CaseID", "Registration Date", "Full Name", "Type of Incidence", "Officer in Charge", "District", "Contact"])
         self.option_search.current(0)
         self.option_search.grid(column=1, row=1, pady=10, padx=10)
 
@@ -559,7 +565,7 @@ class SearchDialog(Dialog):
 
 class SearchResult(tk.Toplevel):
 
-    column_defs = {
+    column_defs_AR = {
         '#0': {'label':'Row', 'anchor':tk.W},
         'Case Number': {'label':'Case Number', 'width':90},
         'Date of Registration': {'label':'Date of Registration', 'width':115},
@@ -592,20 +598,38 @@ class SearchResult(tk.Toplevel):
         'Crime': {'label':'Crime', 'width':150, 'stretch':True}
 
         }
+
+    column_defs_IL = {
+        '#0': {'label':'Row', 'anchor':tk.W},
+        'CaseID': {'label':'CaseID', 'width':90},
+        'Registration Date': {'label':'Registration Date', 'width':115},
+        'Full Name':{'label':'Full Name', 'width':130, 'anchor':tk.W, 'stretch':True},
+        'Contact':{'label':'Contact', 'width':120, 'anchor':tk.W, 'stretch':True},
+        'Officer in Charge': {'label':'Officer in Charge', 'width':120, 'anchor':tk.W, 'stretch':True},
+        'District': {'label': 'District', 'width':90}, 
+        'Statement': {'label':'Statement', 'width':150, 'anchor':tk.W, 'stretch':True},
+        'Type of Incidence': {'label':'Type of Incidence', 'width':120},       
+        'Evidence': {'label':'Evidence', 'width':150, 'anchor':tk.W, 'stretch':True},
+        'Witness': {'label':'Witness', 'width':120, 'anchor':tk.W, 'stretch':True},
+        'Other Info': {'label':'Other Info', 'width':150, 'anchor':tk.W, 'stretch':True}
+
+    }
+
     default_width = 100
     default_minwidth = 10
     default_anchor = tk.CENTER
 
-    def __init__(self, parent, results, title=None):
+    def __init__(self, parent, results, type, title=None):
         tk.Toplevel.__init__(self, parent)
         self.transient(parent)
-        
         self.title(title)
 
         self.parent = parent
         self.result = None
-        self.results= results
+        self.results = results
+        self.type = type
 
+        
         self.initial_focus = self.body()
 
         self.buttonbox()
@@ -640,14 +664,18 @@ class SearchResult(tk.Toplevel):
         self.rcanvas.grid(row=0, column=0, sticky='NSEW')
         self.xscrollbar.grid(row=1, column=0, sticky='EWS', columnspan=2)
 
-        self.searchview = ttk.Treeview(frame, height=30, columns=list(self.column_defs.keys())[1:], selectmode='browse')
+        if self.type == 'arrest':
+            self.searchview = ttk.Treeview(frame, height=30, columns=list(self.column_defs_AR.keys())[1:], selectmode='browse')
+        elif self.type == 'incidence':
+            self.searchview = ttk.Treeview(frame, height=30, columns=list(self.column_defs_IL.keys())[1:], selectmode='browse')
+
         self.yscrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.searchview.yview)
         self.yscrollbar.grid(row=0, column=1, sticky='NSW')
         
         self.searchview.config(show = 'headings')
         self.searchview.configure(yscrollcommand=self.yscrollbar.set)
 
-        for name, definition in self.column_defs.items():
+        for name, definition in (self.column_defs_AR.items() if self.type == 'arrest' else self.column_defs_IL.items()):
             label = definition.get('label', '')
             anchor = definition.get('anchor', self.default_anchor)
             minwidth = definition.get('minwidth', self.default_minwidth)
@@ -663,14 +691,26 @@ class SearchResult(tk.Toplevel):
 
         for row in self.searchview.get_children():
             self.searchview.delete(row)
-        valuekeys = list(self.column_defs.keys())[1:]
-        for rowdata in self.results:
-            rowkey = (str(rowdata['Case Number']), str(rowdata['Date of Registration']))
-            values = [rowdata[key] for key in valuekeys]
 
-            stringkey = '{}|{}'.format(*rowkey)
-            self.searchview.insert('', 'end', iid=stringkey, text=stringkey,
-                                 values=values)
+        if self.type == 'arrest':
+            valuekeys = list(self.column_defs_AR.keys())[1:]
+            for rowdata in self.results:
+                rowkey = (str(rowdata['Case Number']), str(rowdata['Date of Registration']))
+                values = [rowdata[key] for key in valuekeys]
+
+                stringkey = '{}|{}'.format(*rowkey)
+                self.searchview.insert('', 'end', iid=stringkey, text=stringkey,
+                                     values=values)
+
+        elif self.type == 'incidence':
+            valuekeys = list(self.column_defs_IL.keys())[1:]
+            for rowdata in self.results:
+                rowkey = (str(rowdata['CaseID']), str(rowdata['Registration Date']))
+                values = [rowdata[key] for key in valuekeys]
+
+                stringkey = '{}|{}'.format(*rowkey)
+                self.searchview.insert('', 'end', iid=stringkey, text=stringkey,
+                                     values=values)
 
     def buttonbox(self):
         box = tk.Frame(self)
@@ -693,7 +733,7 @@ class SearchResult(tk.Toplevel):
         self.update_idletasks()
 
         self.apply()
-        #self.cancel()
+        self.cancel()
 
     def cancel(self, event=None):
 
@@ -706,7 +746,7 @@ class SearchResult(tk.Toplevel):
 
     def apply(self):
 
-        pass 
+       self.result = self.results
 
 
 class IncidenceForm(tk.Frame):
@@ -1002,7 +1042,7 @@ class ViolentList(tk.Toplevel):
         self.parent = parent
         self.callbacks = callbacks
         self.result = None
-        self.results= results
+        self.results = results
 
         self.initial_focus = self.body()
 
@@ -1084,7 +1124,7 @@ class ViolentList(tk.Toplevel):
         self.update_idletasks()
 
         self.apply()
-        #self.cancel()
+        self.cancel()
 
     def cancel(self, event=None):
 
@@ -1097,7 +1137,7 @@ class ViolentList(tk.Toplevel):
 
     def apply(self):
 
-        pass 
+        self.result = self.results 
 
     def on_open_list(self, *args):
         selected_id = self.violent_list_view.selection()[0]
@@ -1270,7 +1310,7 @@ class CrimeArea(tk.Toplevel):
         self.update_idletasks()
 
         self.apply()
-        #self.cancel()
+        self.cancel()
 
     def cancel(self, event=None):
 
@@ -1283,4 +1323,7 @@ class CrimeArea(tk.Toplevel):
 
     def apply(self):
 
-        pass 
+        self.result = self.results
+
+
+
