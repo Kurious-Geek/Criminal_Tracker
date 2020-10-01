@@ -12,10 +12,12 @@ this app works on POSTGRESQL database,  for now the databse configurations are d
 
 ~ Database configuration:
 	* download and install postgres software
-	* create a database on the software and name it  "criminal_record" 
-	  Alternative: (if you are a developer and you already have a database you are working with, locate the 'models.py' file in the directory of installation of this app, locate the settings model class and edit it according to your database configuration)
-	* in the installation directory locate the directory "sql/create_db.sql" and 
-	  run the script on your databse query tool
+	* open pgAdmin 4 under servers and under postgreSQL 12 right click on databases
+	* create a database and name it  "criminal_record" 
+	  Alternative: (if you are a developer and you already have a database on postgresql you are working with, locate the 'models.py' file in the directory of installation of this app, locate the settings model class and edit it according to your database configuration)
+	* in pgAdmin4 right click on your database and select query tool and click open
+	* in the criminal_tracker directory locate the directory: "sql/create_db.sql" and 
+	  run the script on your database query tool
 	* your application is good to go 
 
 ~ Menu bar:

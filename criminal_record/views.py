@@ -4,6 +4,7 @@ from tkinter import messagebox
 from datetime import datetime
 from . import widgets as w
 from . import models as m
+from .help import Details as h
 from .images import ctracker_32
 from .images import ctracker_64
 from tkinter.simpledialog import Dialog
@@ -22,14 +23,14 @@ class MainMenu(tk.Menu):
         file_menu.add_separator()
         file_menu.add_command(label='Exit                                  Ctrl+Q', command=callbacks['quit'])
         self.add_cascade(label='File', menu=file_menu)
-
+        '''
         edit_menu = tk.Menu(self, tearoff=False)
         edit_menu.add_command(label='Copy', command = '')
         edit_menu.add_command(label='Cut', command='')
         edit_menu.add_command(label='Paste', command='')
         edit_menu.add_command(label='Select All', command='')
         self.add_cascade(label='Edit', menu=edit_menu)
-
+        '''
         options_menu = tk.Menu(self, tearoff=False)
         options_menu.add_checkbutton(label='Autofill Date', variable=settings['autofill date'])
 
@@ -78,8 +79,8 @@ class MainMenu(tk.Menu):
         messagebox.showinfo(title='About Criminal Tracker', message=about_message, detail=about_detail)
 
     def view_help(self):
-        """ """
-        pass
+        HelpView(self)
+        
         
     def on_theme_change(self, *args):
         message = 'Theme change requires restart'
@@ -87,6 +88,92 @@ class MainMenu(tk.Menu):
                   'Your work progress might be lost\n'
                   'Do you want to continue?')
         messagebox.showwarning(title='Warning', message=message, detail=detail)
+
+
+class HelpView(tk.Toplevel):
+
+    def __init__(self, parent):
+
+        tk.Toplevel.__init__(self, parent)
+        self.transient(parent)
+
+        self.title('Help')
+
+        self.parent = parent
+
+        self.detail = h.details
+
+        self.initial_focus = self.body()
+
+        #self.grab_set()
+
+        if not self.initial_focus:
+            self.initial_focus = self
+
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
+
+        '''self.geometry("+%d+%d" % (parent.winfo_rootx()+50,
+                                  parent.winfo_rooty()+50))'''
+
+        self.initial_focus.focus_set()
+
+        self.wait_window(self)
+
+    def body(self):
+
+        self.taskbar_icon = tk.PhotoImage(file=ctracker_32)
+        self.tk.call('wm', 'iconphoto', self._w, self.taskbar_icon)
+
+        header_frame = tk.Frame(self)
+        header_frame.grid(row=0, column=0)
+
+        self.logo = tk.PhotoImage(file=ctracker_64)
+        self.logo_label=tk.Label(header_frame, image=self.logo, highlightthickness=0, borderwidth=0)
+        self.logo_label.grid(row=0, column=0)
+
+        self.head_label = tk.Label(header_frame, text='Criminal Tracker', font=('Droid sans', 20))
+        self.head_label.grid(row=0, column=1)
+
+        self.head_label1 = tk.Label(header_frame, text='v2.0')
+        self.head_label1.grid(row=0, column=2)
+
+        self.canvas = tk.Canvas(self, width=700, height=600, highlightthickness=0)
+        yscrollbar = tk.Scrollbar(self, orient='vertical', command=self.canvas.yview)
+        xscrollbar = tk.Scrollbar(self, orient='horizontal', command=self.canvas.xview)
+
+        self.detail_frame = tk.Frame(self.canvas)
+        self.detail_frame.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL)))
+        self.canvas.create_window((0, 0), window=self.detail_frame, anchor='nw')
+        self.canvas.configure(xscrollcommand=xscrollbar.set, yscrollcommand=yscrollbar.set)
+
+        self.detail_frame.bind('<Enter>', self._bound_to_mousewheel)
+        self.detail_frame.bind('<Leave>', self._unbound_to_mousewheel)
+
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)       
+
+        self.canvas.grid(row=1, column=0, sticky='NSEW')
+        yscrollbar.grid(row=0, column=3, sticky='NS', rowspan=2, columnspan=2)
+        xscrollbar.grid(row=2, column=0, sticky='EW', columnspan=2)
+ 
+        self.detail_label = tk.Label(self.detail_frame, text=self.detail, justify=tk.LEFT)
+        self.detail_label.grid(row=0, padx=20, pady=(20, 0))
+
+
+    def _bound_to_mousewheel(self, event):
+        self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
+
+    def _unbound_to_mousewheel(self, event):
+        self.canvas.unbind_all('<MouseWheel>')
+
+    def _on_mousewheel(self, event):
+        self.canvas.yview_scroll(int(-1*(event.delta/120)), 'units') 
+
+
+    def cancel(self, event=None):
+
+        self.parent.focus_set()
+        self.destroy()
 
         
 class DataRecordForm(tk.Frame):
@@ -527,7 +614,7 @@ class SearchDialog(Dialog):
 
         if self.type == 'arrest':
             self.option_search = ttk.Combobox(frame, textvariable=self.category,
-                                         value=["   --select--", "Case Number", "Date of Registration", "First Name", "Last Name", "Gender", "Age", "Arresting Officer", "Class of Crime"])
+                                         value=["   --select--", "Case Number", "Date of Registration", "First Name", "Last Name", "Gender", "Age", "Arresting Officer", "Class of Crime", "Known Gang"])
         elif self.type == 'incidence':
             self.option_search = ttk.Combobox(frame, textvariable=self.category,
                                          value=["   --select--", "CaseID", "Registration Date", "Full Name", "Type of Incidence", "Officer in Charge", "District", "Contact"])

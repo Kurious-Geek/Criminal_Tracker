@@ -385,6 +385,7 @@ class Application(tk.Tk):
 
     def search_options(self, type):
         self.type = type
+        path='~'
 
         if self.type == 'arrest':
 
@@ -428,9 +429,11 @@ class Application(tk.Tk):
                                     datestring = datetime.today().strftime("%Y-%m-%d")
                                     self.filename = "search_result_for_'{}'_by_'{}'_on_{}.csv".format(search_inp, category, datestring)
                                     header = list(m.SQLModel.fields.keys())
-                                    newfile = not os.path.exists(self.filename)
+                                    
+                                    self.filepath = os.path.join(os.path.expanduser(path), self.filename)
+                                    newfile = not os.path.exists(self.filepath)
 
-                                    with open(self.filename, 'a', newline='') as fh:
+                                    with open(self.filepath, 'a', newline='') as fh:
                                         csvwriter = csv.DictWriter(fh, fieldnames=header)
                                         if newfile:
                                             csvwriter.writeheader()
@@ -478,9 +481,11 @@ class Application(tk.Tk):
                                 datestring = datetime.today().strftime("%Y-%m-%d")
                                 self.filename = "search_result_for_'{}'_by_'{}'_on_{}.csv".format(search_inp, category, datestring)
                                 header = list(m.SQLModel.fields1.keys())
-                                newfile = not os.path.exists(self.filename)
 
-                                with open(self.filename, 'a', newline='') as fh:
+                                self.filepath = os.path.join(os.path.expanduser(path), self.filename)
+                                newfile = not os.path.exists(self.filepath)
+
+                                with open(self.filepath, 'a', newline='') as fh:
                                     csvwriter = csv.DictWriter(fh, fieldnames=header)
                                     if newfile:
                                         csvwriter.writeheader()
@@ -489,6 +494,7 @@ class Application(tk.Tk):
                                 break
 
     def violent_list(self):
+        path='~'
         try:
             results = self.data_model.sort_violent()
         except m.pg.OperationalError as e:
@@ -512,9 +518,12 @@ class Application(tk.Tk):
                         datestring = datetime.today().strftime("%Y-%m-%d")
                         self.filename = "violent_inmates_record_{}.csv".format(datestring)
                         header = list(violent_inmates_list.column_defs.keys())[1:]
-                        newfile = not os.path.exists(self.filename)
+                        
+                        self.filepath = os.path.join(os.path.expanduser(path), self.filename)
+                        newfile = not os.path.exists(self.filepath)
 
-                        with open(self.filename, 'a', newline='') as fh:
+
+                        with open(self.filepath, 'a', newline='') as fh:
                             csvwriter = csv.DictWriter(fh, fieldnames=header)
                             if newfile:
                                 csvwriter.writeheader()
@@ -562,15 +571,19 @@ class Application(tk.Tk):
                         datestring = datetime.today().strftime("%Y-%m-%d")
                         self.filename = "crime_occuring_areas_record_{}.csv".format(datestring)
                         header = list(crime_occuring_area.column_defs.keys())[1:]
-                        newfile = not os.path.exists(self.filename)
 
-                        with open(self.filename, 'a', newline='') as fh:
+                        path='~'
+                        self.filepath = os.path.join(os.path.expanduser(path), self.filename)
+                        newfile = not os.path.exists(self.filepath)
+
+
+                        with open(self.filepath, 'a', newline='') as fh:
                             csvwriter = csv.DictWriter(fh, fieldnames=header)
                             if newfile:
                                 csvwriter.writeheader()
                             writer = csv.writer(fh, dialect='excel')
                             writer.writerows(data)
-                        break 
+                        break
 
 
                 

@@ -310,7 +310,6 @@ class SQLModel:
         '%(Residence Address)s)'
         )
         
-
     oi_update_query = (
         'UPDATE official_information SET case_number = %(Case Number)s, '
         'date_of_registration = %(Date of Registration)s, date_of_arrest = %(Date of Arrest)s, '
