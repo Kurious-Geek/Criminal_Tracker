@@ -15,6 +15,12 @@ from tkinter.font import nametofont
 class Application(tk.Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        #self.landing_page = v.LandingPage()
+
+        #if self.landing_page.result:
+
+
         self.title('Criminal Tracker')
         self.resizable(width=True, height=True)
 
@@ -23,7 +29,7 @@ class Application(tk.Tk):
 
         #-- Shortcut keys --#
 
-        self.bind_all("<Control-Key-s>", self.on_save)
+        self.bind_all("<Control-Key-s>", self.event_save)
         #self.bind_all("<Control-Key-n>", self.new_record)
         self.bind_all("<Control-Key-q>", self.close)
         self.bind_all("<Control-Shift-Key-S>", self.save_in_csv)
@@ -61,7 +67,6 @@ class Application(tk.Tk):
                           'violent_list':self.violent_list,
                           'on_open_vlist':self.open_vlist,
                           'crime_area':self.crime_areas,
-                          #'extract_to_csv':self.extract_to_csv
                           
         }  
 
@@ -75,31 +80,13 @@ class Application(tk.Tk):
         self.tabs = ttk.Notebook(self)   
         self.tab1 = tk.Frame(self.tabs, bg='#008ae6')
         self.tabs.add(self.tab1, text='  Arrest Form  ')
-        self.tabs.pack(expand=1, fill='both')
+        self.tabs.pack(expand=1, fill='both') 
 
-        self.canvas = tk.Canvas(self.tab1, width=970, height=600, highlightthickness=0, bg='#008ae6')
-        yscrollbar = tk.Scrollbar(self.tab1, orient='vertical', command=self.canvas.yview)
-        xscrollbar = tk.Scrollbar(self.tab1, orient='horizontal', command=self.canvas.xview)
-
-        self.scrollable_frame = tk.Frame(self.canvas)
-        self.scrollable_frame.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL)))
-        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor='nw')
-        self.canvas.configure(xscrollcommand=xscrollbar.set, yscrollcommand=yscrollbar.set)
-
-        self.scrollable_frame.bind('<Enter>', self._bound_to_mousewheel)
-        self.scrollable_frame.bind('<Leave>', self._unbound_to_mousewheel)
-
-        self.scrollable_frame.config(bg='#008ae6')
-
-        self.canvas.grid(row=0, column=0, sticky='NSEW')#, columnspan=2)
-        yscrollbar.grid(row=0, column=3, sticky='NS', rowspan=2)
-        xscrollbar.grid(row=1, column=0, sticky='EW', columnspan=2) 
-
-        self.recordform = v.DataRecordForm(self.scrollable_frame, self.data_model.fields, self.settings, self.callbacks)
-        self.recordform.grid(row=1, padx=10)
+        self.recordform = v.DataRecordForm(self.tab1, self.data_model.fields, self.settings, self.callbacks)
+        self.recordform.grid(row=0, sticky='NSWE')
 
         drf = tk.Frame(self.tab1, bg='#008ae6')
-        drf.grid(row=2, sticky=tk.W)
+        drf.grid(row=1, sticky=tk.W)
 
         self.status_label = tk.Label(drf, text= 'Status:', font=('Droid sans', 8), background='#008ae6', foreground='white')
         self.status_label.grid(row=0, column=0, sticky=tk.W, pady=2)
@@ -108,9 +95,6 @@ class Application(tk.Tk):
         self.statusbar = tk.Label(drf, textvariable=self.status,  font=('Droid sans', 8), background='#008ae6', foreground='white')
         self.statusbar.grid(row=0, column=1, sticky=tk.W, padx=5)
 
-        self.canvas.columnconfigure(0, weight=1)
-        self.canvas.rowconfigure(0, weight=1)
-    
         self.tab1.rowconfigure(0, weight=1)
         self.tab1.columnconfigure(0, weight=1)
 
@@ -132,7 +116,6 @@ class Application(tk.Tk):
         self.ifstatus = tk.StringVar()
         self.ifstatusbar = tk.Label(frame, textvariable=self.ifstatus,  font=('Droid sans', 8), background='#008ae6', foreground='white')
         self.ifstatusbar.grid(row=1, column=1, sticky=tk.W, padx=10)
-        #self.incidence_form.tkraise()
 
         self.tab2.rowconfigure(0, weight=1)
         self.tab2.columnconfigure(0, weight=1)
@@ -176,8 +159,16 @@ class Application(tk.Tk):
         self.incidencelist.grid(row=0, sticky='NSWE')
         self.populate_incidencelist()
 
+    def event_save(self, event=None):
+        title = 'Save'
+        save_dialog = v.SaveDialog(self, title)
 
-    def on_save(self, form, event=None):
+        if save_dialog.result == 'saveAF':
+            self.on_save('arrest')
+        elif save_dialog.result == 'saveIF':
+            self.on_save('incidence')
+
+    def on_save(self, form):
 
         if form == 'arrest':
 
@@ -270,9 +261,17 @@ class Application(tk.Tk):
         self.recordform.reset()
 
     def close(self, event=None):
-        self.quit()
-        self.destroy()
-        exit()
+        title = 'Exit Criminal Tracker'
+        message = 'Closing ... '
+        detail = 'Are you sure you want to exit the app?'
+        close_option = messagebox.askyesno(title=title, message=message, detail=detail)
+        if not close_option:
+            return
+        else:
+            self.quit()
+            self.destroy()
+            exit()
+        
         
     def load_settings(self):
         vartypes = {

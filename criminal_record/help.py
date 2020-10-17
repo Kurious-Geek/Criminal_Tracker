@@ -16,8 +16,8 @@ class Details:
 		'	  run the script on your databsse query tool \n'
 		'	* your application is good to go \n\n'
 
-		'~ Menu bar: \n'
-		'	Menu bar contains regular menu bar options \n'
+		'~ Menu bar: \n\n'
+		'	Menu bar contains regular menu bar options \n\n'
 		'	* File: \n' 
 		'		New Arrest Form: this resets the widgets of the arrest record tab to start a new record \n'
 		'		New Incidence Form: this resets the widgets of the incidence record tab to start a new record \n'
@@ -46,13 +46,13 @@ class Details:
 		'		Search Incidence Record: this searches for keywords by selected categories these categories are \n'
 		'		columns on the "incidence_view" which is the incidence record in the database. \n\n'
 			
-		'~ Error Handling: \n'
+		'~ Error Handling: \n\n'
 		'	* App window can be resized \n'
 		'	* Cannot Save Record: this is due to the fact that one or more fields are empty or are field with wrong syntax \n'
 		'	* problem saving record: this is due to database error or as stated in the error details \n'
 		'	* record not found: this is due to error in search parameters orempty search result \n\n'
 
-		'~ Saving data: \n'
+		'~ Saving data: \n\n'
 		'	* Data can be saved in csv format manually. \n'
 		'	* Data is saved to database by default. \n'
 		'	* Windows with Extract to csv buttons can extract their records to a csv file \n'

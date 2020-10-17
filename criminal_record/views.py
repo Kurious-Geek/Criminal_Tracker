@@ -17,20 +17,20 @@ class MainMenu(tk.Menu):
         file_menu.add_command(label='New Arrest Form', command=callbacks['new_record'])
         file_menu.add_command(label='New Incidence Form', command=callbacks['new_irecord'])
         file_menu.add_separator()
-        file_menu.add_command(label="Save Arrest Form", command=callbacks['saveAF'])
-        file_menu.add_command(label="Save Incidence Form", command=callbacks['saveIF'])
+        file_menu.add_command(label="Save Arrest                     Ctrl+S", command=callbacks['saveAF'])
+        file_menu.add_command(label="Save Incidence Form     Ctrl+S", command=callbacks['saveIF'])
         file_menu.add_command(label='Save in CSV                    Ctrl+Shift+S', command=callbacks['savein'])
         file_menu.add_separator()
         file_menu.add_command(label='Exit                                  Ctrl+Q', command=callbacks['quit'])
         self.add_cascade(label='File', menu=file_menu)
-        '''
+        
         edit_menu = tk.Menu(self, tearoff=False)
         edit_menu.add_command(label='Copy', command = '')
         edit_menu.add_command(label='Cut', command='')
         edit_menu.add_command(label='Paste', command='')
-        edit_menu.add_command(label='Select All', command='')
+        edit_menu.add_command(label='Undo', command='')
         self.add_cascade(label='Edit', menu=edit_menu)
-        '''
+        
         options_menu = tk.Menu(self, tearoff=False)
         options_menu.add_checkbutton(label='Autofill Date', variable=settings['autofill date'])
 
@@ -76,7 +76,7 @@ class MainMenu(tk.Menu):
         about_detail = ('For assistance please read the docs \nor contact the developer. '
                         '\n\n\n\t\tpowered by Kurious Geek')
 
-        messagebox.showinfo(title='About Criminal Tracker', message=about_message, detail=about_detail)
+        messagebox.showinfo(title='About... ', message=about_message, detail=about_detail)
 
     def view_help(self):
         HelpView(self)
@@ -90,20 +90,22 @@ class MainMenu(tk.Menu):
         messagebox.showwarning(title='Warning', message=message, detail=detail)
 
 
-class HelpView(tk.Toplevel):
+class LandingPage(tk.Frame):
 
-    def __init__(self, parent):
+    def __init__(self):
 
-        tk.Toplevel.__init__(self, parent)
-        self.transient(parent)
+        #tk.Toplevel.__init__(self)
+        #self.transient(parent)
 
-        self.title('Help')
+        #self.title('Home')
 
-        self.parent = parent
+        self.result = None
 
-        self.detail = h.details
+        body = tk.Frame(self)
+        self.initial_focus = self.body(body)
+        body.pack(padx=5, pady=5)
 
-        self.initial_focus = self.body()
+        self.buttonbox()
 
         #self.grab_set()
 
@@ -119,29 +121,169 @@ class HelpView(tk.Toplevel):
 
         self.wait_window(self)
 
-    def body(self):
 
+    def body(self, master):
+
+        pass
+
+    def buttonbox(self):
+
+        box = tk.Frame(self)
+
+        w = tk.Button(box, text="OK", width=10, command=self.ok, default=tk.ACTIVE)
+        w.pack(side=tk.LEFT, padx=5, pady=5)
+        w = tk.Button(box, text="Cancel", width=10, command=self.cancel)
+        w.pack(side=tk.LEFT, padx=5, pady=5)
+
+        self.bind("<Return>", self.ok)
+        self.bind("<Escape>", self.cancel)
+
+        box.pack()
+
+
+    def ok(self, event=None):
+
+        if not self.validate():
+            self.initial_focus.focus_set() # put focus back
+            return
+
+        self.withdraw()
+        self.update_idletasks()
+
+        self.apply()
+
+        self.cancel()
+
+    def cancel(self, event=None):
+
+        #self.parent.focus_set()
+        self.destroy()
+
+    def validate(self):
+
+        return 1 
+
+    def apply(self):
+
+         self.result = 'result'
+
+
+class SaveDialog(Dialog):
+
+    def __init__(self, parent, title):
+        super().__init__(parent, title=title)
+
+    def body(self, parent):
+        self.taskbar_icon = tk.PhotoImage(file=ctracker_32)
+        self.tk.call('wm', 'iconphoto', self._w, self.taskbar_icon)
+        
+        mf = tk.Frame(self)
+
+        message = tk.Label(mf, text='Select Save options', font=('Droid sans', 9))
+        message.grid(pady=20)
+
+        mf.pack()
+
+    def buttonbox(self):
+
+        box = tk.Frame(self)
+
+        sar = tk.Button(box, text="Save to Arrest Record", command=lambda:self.ok('sar'))
+        sar.pack(side=tk.LEFT, padx=5, pady=5)
+
+        sir = tk.Button(box, text="Save to Incidence Record", command=lambda:self.ok('sir'))
+        sir.pack(side=tk.LEFT, padx=5, pady=5)
+
+        box.pack()
+
+    def ok(self, type):
+
+        if not self.validate():
+            self.initial_focus.focus_set()
+            return
+
+        self.withdraw()
+        self.update_idletasks()
+
+        if type == 'sar':
+            self.apply('sar')
+        elif type == 'sir':
+            self.apply('sir')
+        else:
+            print('the code has been tampered with')
+
+        self.cancel()
+
+    def cancel(self, event=None):
+
+        self.parent.focus_set()
+        self.destroy()
+
+    def validate(self):
+
+        return 1
+   
+    def apply(self, type):
+        if type == 'sar':
+            self.result = 'saveAF'
+        elif type == 'sir':
+            self.result = 'saveIF'
+        else:
+            print('the code has been tampered with')
+
+
+class HelpView(tk.Toplevel):
+
+    def __init__(self, parent):
+
+        tk.Toplevel.__init__(self, parent)
+        self.transient(parent)
+
+        self.title('Help')
+        self.resizable(width=False, height=False)
+        self.parent = parent
+        self.detail = h.details
+
+        self.initial_focus = self.body()
+
+        self.grab_set()
+
+        if not self.initial_focus:
+            self.initial_focus = self
+
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
+
+        self.geometry("+%d+%d" % (parent.winfo_rootx()+50,
+                                  parent.winfo_rooty()+50))
+
+        self.initial_focus.focus_set()
+
+        self.wait_window(self)
+        
+
+    def body(self):
+        self.configure(background='#008ae6')
         self.taskbar_icon = tk.PhotoImage(file=ctracker_32)
         self.tk.call('wm', 'iconphoto', self._w, self.taskbar_icon)
 
-        header_frame = tk.Frame(self)
+        header_frame = tk.Frame(self, bg='#008ae6')
         header_frame.grid(row=0, column=0)
 
         self.logo = tk.PhotoImage(file=ctracker_64)
         self.logo_label=tk.Label(header_frame, image=self.logo, highlightthickness=0, borderwidth=0)
         self.logo_label.grid(row=0, column=0)
 
-        self.head_label = tk.Label(header_frame, text='Criminal Tracker', font=('Droid sans', 20))
-        self.head_label.grid(row=0, column=1)
+        self.head_label = tk.Label(header_frame, text='Criminal Tracker', font=('Droid sans', 20), background='#008ae6', foreground='white')
+        self.head_label.grid(row=0, column=1, pady=20, padx=(10, 0))
 
-        self.head_label1 = tk.Label(header_frame, text='v2.0')
+        self.head_label1 = tk.Label(header_frame, text='v2.0', background='#008ae6', foreground='white')
         self.head_label1.grid(row=0, column=2)
 
         self.canvas = tk.Canvas(self, width=700, height=600, highlightthickness=0)
         yscrollbar = tk.Scrollbar(self, orient='vertical', command=self.canvas.yview)
         xscrollbar = tk.Scrollbar(self, orient='horizontal', command=self.canvas.xview)
 
-        self.detail_frame = tk.Frame(self.canvas)
+        self.detail_frame = tk.Frame(self.canvas, bg='#008ae6')
         self.detail_frame.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL)))
         self.canvas.create_window((0, 0), window=self.detail_frame, anchor='nw')
         self.canvas.configure(xscrollcommand=xscrollbar.set, yscrollcommand=yscrollbar.set)
@@ -154,9 +296,9 @@ class HelpView(tk.Toplevel):
 
         self.canvas.grid(row=1, column=0, sticky='NSEW')
         yscrollbar.grid(row=0, column=3, sticky='NS', rowspan=2, columnspan=2)
-        xscrollbar.grid(row=2, column=0, sticky='EW', columnspan=2)
+        xscrollbar.grid(row=2, column=0, sticky='EW', columnspan=3)
  
-        self.detail_label = tk.Label(self.detail_frame, text=self.detail, justify=tk.LEFT)
+        self.detail_label = tk.Label(self.detail_frame, text=self.detail, justify=tk.LEFT, background='#008ae6', foreground='white')
         self.detail_label.grid(row=0, padx=20, pady=(20, 0))
 
 
@@ -191,17 +333,38 @@ class DataRecordForm(tk.Frame):
         
         self.inputs = {}
 
+        self.canvas = tk.Canvas(self, width=970, height=600, highlightthickness=0, bg='#008ae6')
+        yscrollbar = tk.Scrollbar(self, orient='vertical', command=self.canvas.yview)
+        xscrollbar = tk.Scrollbar(self, orient='horizontal', command=self.canvas.xview)
+
+        self.scrollable_frame = tk.Frame(self.canvas)
+        self.scrollable_frame.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL)))
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor='nw')
+        self.canvas.configure(xscrollcommand=xscrollbar.set, yscrollcommand=yscrollbar.set)
+
+        self.scrollable_frame.bind('<Enter>', self._bound_to_mousewheel)
+        self.scrollable_frame.bind('<Leave>', self._unbound_to_mousewheel)
+
+        self.scrollable_frame.config(bg='#008ae6')
+
+        self.canvas.grid(row=0, column=0, sticky='NSEW')
+        yscrollbar.grid(row=0, column=3, sticky='NS', rowspan=2)
+        xscrollbar.grid(row=1, column=0, sticky='EW', columnspan=2)
+
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+
         self.logo = tk.PhotoImage(file=ctracker_64)
-        self.logo_label=tk.Label(self, image=self.logo, highlightthickness=0, borderwidth=0, background='#008ae6')
+        self.logo_label=tk.Label(self.scrollable_frame, image=self.logo, highlightthickness=0, borderwidth=0, background='#008ae6')
         self.logo_label.grid(row=0, columnspan=2, pady=10)
 
-        self.record_label = ttk.Label(self, style='BackgroundCol.TLabel')
+        self.record_label = ttk.Label(self.scrollable_frame, style='BackgroundCol.TLabel')
         self.record_label.grid(row=1, columnspan=2)
         
         #-- personal information --#
         
-        personal_info = tk.LabelFrame(self, text = 'PERSONAL INFORMATION', bg='#008ae6', fg='white')
-        personal_info.grid(row=2, column=0, padx=5)
+        personal_info = tk.LabelFrame(self.scrollable_frame, text = 'PERSONAL INFORMATION', bg='#008ae6', fg='white')
+        personal_info.grid(row=2, column=0, padx=(17, 5))
 
         self.inputs['First Name'] = w.LabelInput(personal_info, "First Name:", field_spec=fields['First Name'], label_args={'style': 'BackgroundCol.TLabel'})
         self.inputs['First Name'].configure(background='#008ae6')
@@ -282,7 +445,7 @@ class DataRecordForm(tk.Frame):
 
         #-- official --#
 
-        official = tk.LabelFrame(self, text='OFFICIAL', bg='#008ae6', fg='white')
+        official = tk.LabelFrame(self.scrollable_frame, text='OFFICIAL', bg='#008ae6', fg='white')
         official.grid(column=1, row=2, sticky=(tk.W+tk.N), padx=5)
 
         self.inputs['Date of Registration'] = w.LabelInput(official, 'Date of Registration:', field_spec=fields['Date of Registration'], label_args={'style':'BackgroundCol.TLabel'})
@@ -339,10 +502,10 @@ class DataRecordForm(tk.Frame):
         self.inputs['Known Gang'].configure(background='#008ae6')
         self.inputs['Known Gang'].grid(column=1, row=9, columnspan=2)
         
-        self.savebutton = ttk.Button(self, text="  Save  ", command=self.callbacks['saveAF'])
+        self.savebutton = ttk.Button(self.scrollable_frame, text="  Save  ", command=self.callbacks['saveAF'])
         self.savebutton.grid(column=0, row=11, padx=10, pady=10, sticky='E')
 
-        self.clearbutton = ttk.Button(self, text="  Clear  ", command=self.callbacks['clear'])
+        self.clearbutton = ttk.Button(self.scrollable_frame, text="  Clear  ", command=self.callbacks['clear'])
         self.clearbutton.grid(column=1, row=11, sticky='W', pady=10, padx=10)
 
         self.reset()
@@ -880,7 +1043,7 @@ class IncidenceForm(tk.Frame):
         self.form_label.grid(row=1, columnspan=5)
 
         self.frame = tk.Frame(self.scroll_frame, bg='#008ae6')
-        self.frame.grid(row=2, padx=25, pady=10)
+        self.frame.grid(row=2, padx=25, pady=10, sticky='NSWE')
 
         self.inputs['CaseID'] = w.LabelInput(self.frame, "CaseID:", field_spec=fields['CaseID'], label_args={'style': 'BackgroundCol.TLabel'})
         self.inputs['CaseID'].configure(background='#008ae6')
